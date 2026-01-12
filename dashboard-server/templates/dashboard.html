@@ -36,13 +36,17 @@
         <!-- LEFT PANEL -->
         <div class="left-panel">
             <div class="card history-card">
-            <h3>History of Classes</h3>
-            <ul class="history-list">
-                <li>DSP – 09:00–09:50</li>
-                <li>IoT – 10:00–10:50</li>
-                <li>Control – 11:00–11:50</li>
-            </ul>
-            </div>
+  <div class="history-header">
+    <h3>History of Classes</h3>
+    <button class="history-expand" id="openHistoryModal" title="View all sessions">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <ul class="history-list" id="recentHistory">
+    <!-- Last 2 sessions injected by JS -->
+  </ul>
+</div>
 
             <div class="card heatmap-card">
   <h3>Engagement Heatmap</h3>
@@ -132,6 +136,17 @@
         </div>
       </div>
     </div>
+
+    <div class="modal-overlay" id="historyModal">
+  <div class="modal large">
+    <button class="modal-close" id="closeHistoryModal">✕</button>
+    <h3>All Class Sessions</h3>
+
+    <div class="session-list" id="allSessionsList">
+      <!-- Full session list injected by JS -->
+    </div>
+  </div>
+</div>
 
 
 </body>

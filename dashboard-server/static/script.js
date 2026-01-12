@@ -4,6 +4,7 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  loadSessionHistory();
   /* ==========================================================================
      1. GLOBAL STATE & VARIABLES
      ========================================================================== */
@@ -97,85 +98,94 @@ async function computeAttentiveness() {
     const res = await fetch("http://127.0.0.1:5001/attention");
     if (!res.ok) throw new Error("Attention API failed");
     const data = await res.json();
-    return data.attention;
+    return typeof data.attention === "number" ? data.attention : null;
   } catch (err) {
     console.error("Attention fetch error:", err);
-    return 0;
+    return null;
   }
 }
 
-  function renderHeatmap(data) {
-    const grid = document.getElementById("heatmapGrid");
-    if (!grid) return;
-    grid.innerHTML = "";
+const avgEng = document.getElementById("avgEng");
+const peakEng = document.getElementById("peakEng");
 
-    let peak = 0;
-    let sum = 0;
+function renderHeatmap(data) {
+  const grid = document.getElementById("heatmapGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
 
-    const computedStyle = window.getComputedStyle(grid);
-    const columns = computedStyle.gridTemplateColumns;
-    const columnCount = columns && columns !== "none" ? columns.split(" ").length : 12;
+  const columns = 12;
+  const rows = 3;
+  const maxCells = columns * rows;
 
-    const maxCells = columnCount * 3;
-    const trimmedData = data.slice(-maxCells);
-
-    trimmedData.forEach(val => {
-      peak = Math.max(peak, val);
-      sum += val;
-
+  if (!data.length) {
+    for (let i = 0; i < maxCells; i++) {
       const cell = document.createElement("div");
       cell.className = "heatmap-cell";
-
-      if (val < 40) cell.style.background = "#1f2933";
-      else if (val < 60) cell.style.background = "rgba(167,139,250,0.35)";
-      else if (val < 80) cell.style.background = "rgba(167,139,250,0.65)";
-      else cell.style.background = "#a78bfa";
-
-      cell.title = `${val}% attentiveness`;
       grid.appendChild(cell);
-    });
-
-    const avgEl = document.getElementById("avgEng");
-    const peakEl = document.getElementById("peakEng");
-    if (avgEl) avgEl.textContent = trimmedData.length ? Math.round(sum / trimmedData.length) : 0;
-    if (peakEl) peakEl.textContent = peak;
+    }
+    avgEng.textContent = "—";
+    peakEng.textContent = "—";
+    return;
   }
+
+  const trimmedData = data.slice(-maxCells);
+  let sum = 0;
+  let peak = 0;
+
+  trimmedData.forEach(val => {
+    sum += val;
+    peak = Math.max(peak, val);
+
+    const cell = document.createElement("div");
+    cell.className = "heatmap-cell";
+
+    if (val < 40) cell.style.background = "#1f2933";
+    else if (val < 60) cell.style.background = "rgba(167,139,250,0.35)";
+    else if (val < 80) cell.style.background = "rgba(167,139,250,0.65)";
+    else cell.style.background = "#a78bfa";
+
+    grid.appendChild(cell);
+  });
+
+  avgEng.textContent = Math.round(sum / trimmedData.length);
+  peakEng.textContent = peak;
+}
 
   /* ==========================================================================
      4. SESSION CONTROL (START/PAUSE/STOP)
      ========================================================================== */
 
-  function startChartPlotting() {
-    attentionData.length = 0;
-    timeLabels.length = 0;
-    heatmapData.length = 0;
-    attentionChart.update();
-    renderHeatmap(heatmapData);
+function startChartPlotting() {
+  if (chartInterval) return; // HARD LOCK
 
-    sessionStartTime = Date.now();
-    sessionPaused = false;
+  attentionData.length = 0;
+  timeLabels.length = 0;
+  heatmapData.length = 0;
 
-    chartInterval = setInterval(() => {
-      if (!sessionActive || sessionPaused) return;
-
-      const elapsed = Date.now() - sessionStartTime;
-      const min = String(Math.floor(elapsed / 60000)).padStart(2, "0");
-      const sec = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0");
-
-      timeLabels.push(`${min}:${sec}`);
-      (async () => {
-  const value = await computeAttentiveness();
-  attentionData.push(value);
-  heatmapData.push(value);
-
-  renderHeatmap(heatmapData);
   attentionChart.update();
-})();
+  renderHeatmap([]);
 
-      renderHeatmap(heatmapData);
-      attentionChart.update();
-    }, 5000);
-  }
+  sessionStartTime = Date.now();
+  sessionPaused = false;
+
+  chartInterval = setInterval(async () => {
+    if (!sessionActive || sessionPaused) return;
+
+    const elapsed = Date.now() - sessionStartTime;
+    const min = String(Math.floor(elapsed / 60000)).padStart(2, "0");
+    const sec = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0");
+
+    const value = await computeAttentiveness();
+if (value === null) return; // skip this tick
+
+    timeLabels.push(`${min}:${sec}`);
+    attentionData.push(value);
+    heatmapData.push(value);
+
+    renderHeatmap(heatmapData);
+    attentionChart.update();
+  }, 5000);
+}
 
   function pauseChartPlotting() {
     sessionPaused = true;
@@ -189,14 +199,40 @@ async function computeAttentiveness() {
     sessionPaused = false;
   }
 
-  function stopChartPlotting() {
-    if (chartInterval) {
-      clearInterval(chartInterval);
-      chartInterval = null;
-    }
-    sessionActive = false;
-    sessionPaused = false;
+async function stopChartPlotting() {
+  if (chartInterval) {
+    clearInterval(chartInterval);
+    chartInterval = null;
   }
+
+  sessionActive = false;
+  sessionPaused = false;
+  pauseBtn.textContent = "Pause";
+
+  // 🔥 HARD RESET UI STATE
+  attentionData.length = 0;
+  timeLabels.length = 0;
+  heatmapData.length = 0;
+
+  attentionChart.update();
+  renderHeatmap([]);
+
+  document.getElementById("avgEng").textContent = "—";
+  document.getElementById("peakEng").textContent = "—";
+
+  try {
+    await fetch("http://127.0.0.1:5001/session/stop", { method: "POST" });
+    loadSessionHistory();
+  } catch (e) {
+    console.error("Failed to stop session", e);
+  }
+}
+
+function updateButtonStates() {
+  startBtn.disabled = sessionActive;
+  pauseBtn.disabled = !sessionActive;
+  stopBtn.disabled = !sessionActive;
+}
 
   /* ==========================================================================
      5. UI UPDATES (TIME & NAVBAR)
@@ -282,17 +318,53 @@ async function computeAttentiveness() {
     });
   }
 
+  // HIstory Tab Modal Logic
+
+  // --- History Modal Logic (FIXED) ---
+const historyModal = document.getElementById("historyModal");
+const openHistory = document.getElementById("openHistoryModal");
+const closeHistory = document.getElementById("closeHistoryModal");
+
+if (historyModal && openHistory && closeHistory) {
+  openHistory.addEventListener("click", () => {
+    historyModal.classList.add("active");
+  });
+
+  closeHistory.addEventListener("click", () => {
+    historyModal.classList.remove("active");
+  });
+
+  historyModal.addEventListener("click", (e) => {
+    if (e.target === historyModal) {
+      historyModal.classList.remove("active");
+    }
+  });
+}
+
   // --- Session Control Listeners ---
   const startBtn = document.getElementById("startBtn");
   const pauseBtn = document.getElementById("pauseBtn");
   const stopBtn = document.getElementById("stopBtn");
 
   if (startBtn && pauseBtn && stopBtn) {
-    startBtn.addEventListener("click", () => {
-      if (sessionActive) return;
-      sessionActive = true;
-      startChartPlotting();
+    startBtn.addEventListener("click", async () => {
+  if (sessionActive) return;
+
+  try {
+    await fetch("http://127.0.0.1:5001/session/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject: subjectName.textContent || "Unknown" })
     });
+
+    sessionActive = true;
+    sessionPaused = false;
+    startChartPlotting();
+
+  } catch (e) {
+    console.error("Failed to start session", e);
+  }
+});
 
     pauseBtn.addEventListener("click", () => {
       if (!sessionActive) return;
@@ -312,3 +384,49 @@ async function computeAttentiveness() {
     });
   }
 });
+
+async function loadSessionHistory() {
+  try {
+    const res = await fetch("http://localhost:5001/sessions");
+    const sessions = await res.json();
+
+    const recent = sessions.slice(0, 2);
+    const list = document.getElementById("recentHistory");
+    list.innerHTML = "";
+
+    recent.forEach(s => {
+      const li = document.createElement("li");
+      li.textContent = `${s[3]} • Avg ${Math.round(s[4])}%`;
+      list.appendChild(li);
+    });
+
+    renderAllSessions(sessions);
+
+  } catch (err) {
+    console.error("Failed to load sessions", err);
+  }
+}
+
+function renderAllSessions(sessions) {
+  const container = document.getElementById("allSessionsList");
+  container.innerHTML = "";
+
+  sessions.forEach(s => {
+    const card = document.createElement("div");
+    card.className = "session-card";
+
+    card.innerHTML = `
+      <b>${s[3]}</b>
+      <div class="session-meta">
+        ${new Date(s[1]).toLocaleString()}
+      </div>
+      <div class="session-stats">
+        <span>Avg: ${Math.round(s[4])}%</span>
+        <span>Peak: ${Math.round(s[5])}%</span>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+

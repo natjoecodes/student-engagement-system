@@ -661,3 +661,67 @@ body {
 .shake {
   animation: shake 0.35s ease-in-out;
 }
+
+/* ==========================================================================
+   9. History card header
+   ========================================================================== */
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-expand {
+  background: none;
+  border: none;
+  color: #a78bfa;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.history-expand:hover {
+  transform: translateX(3px);
+}
+
+/* History list */
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.history-list li {
+  font-size: 0.9rem;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Session cards inside modal */
+.session-card {
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  margin-bottom: 12px;
+}
+
+.session-meta {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.session-stats {
+  margin-top: 6px;
+  display: flex;
+  gap: 15px;
+  font-size: 0.85rem;
+}
+
+.modal.large {
+  width: min(90vw, 1000px);
+  max-height: 85vh;
+  padding: 32px 36px;
+  overflow-y: auto;
+  text-align: left;
+}
+
