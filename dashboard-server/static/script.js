@@ -92,10 +92,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function computeAttentiveness() {
-    // Placeholder logic (replace with real model later)
-    return Math.floor(60 + Math.random() * 30);
+async function computeAttentiveness() {
+  try {
+    const res = await fetch("http://127.0.0.1:5001/attention");
+    if (!res.ok) throw new Error("Attention API failed");
+    const data = await res.json();
+    return data.attention;
+  } catch (err) {
+    console.error("Attention fetch error:", err);
+    return 0;
   }
+}
 
   function renderHeatmap(data) {
     const grid = document.getElementById("heatmapGrid");
@@ -156,9 +163,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const sec = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0");
 
       timeLabels.push(`${min}:${sec}`);
-      const value = computeAttentiveness();
-      attentionData.push(value);
-      heatmapData.push(value);
+      (async () => {
+  const value = await computeAttentiveness();
+  attentionData.push(value);
+  heatmapData.push(value);
+
+  renderHeatmap(heatmapData);
+  attentionChart.update();
+})();
 
       renderHeatmap(heatmapData);
       attentionChart.update();
