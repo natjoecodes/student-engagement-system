@@ -1,0 +1,172 @@
+{
+  "Monday": [
+    {
+      "start": "08:30",
+      "end": "09:30",
+      "subject": "Speech and Audio Processing",
+      "faculty": ["AN"]
+    },
+    {
+      "start": "09:30",
+      "end": "10:30",
+      "subject": "Wireless Sensor Networks",
+      "faculty": ["JP"]
+    },
+    {
+      "start": "10:30",
+      "end": "11:30",
+      "subject": "Instrumentation and Control for Petrochemical Industries",
+      "faculty": ["RJ"]
+    },
+    {
+      "start": "11:30",
+      "end": "12:30",
+      "subject": "Aviation Electronics",
+      "faculty": ["ARV"]
+    },
+    {
+      "type": "BREAK",
+      "label": "Lunch Break",
+      "start": "12:30",
+      "end": "14:00"
+    },
+    {
+      "start": "14:00",
+      "end": "16:00",
+      "subject": "Project Phase II",
+      "faculty": ["SEN"]
+    }
+  ],
+
+  "Tuesday": [
+    {
+      "start": "08:30",
+      "end": "09:30",
+      "subject": "Honors",
+      "faculty": []
+    },
+    {
+      "start": "09:30",
+      "end": "10:30",
+      "subject": "Aviation Electronics",
+      "faculty": ["ARV"]
+    },
+    {
+      "start": "10:30",
+      "end": "11:30",
+      "subject": "VLSI Circuit Design",
+      "faculty": ["STV"]
+    },
+    {
+      "type": "BREAK",
+      "label": "Lunch Break",
+      "start": "12:30",
+      "end": "13:30"
+    },
+    {
+      "start": "13:30",
+      "end": "16:00",
+      "subject": "Project Phase II",
+      "faculty": ["SEN"]
+    }
+  ],
+
+  "Wednesday": [
+    {
+      "start": "09:30",
+      "end": "10:30",
+      "subject": "Comprehensive Course Viva",
+      "faculty": ["SKP"]
+    },
+    {
+      "start": "10:30",
+      "end": "11:30",
+      "subject": "VLSI Circuit Design",
+      "faculty": ["STV"]
+    },
+        {
+      "start": "11:30",
+      "end": "12:30",
+      "subject": "Aviation Electronics",
+      "faculty": ["ARV"]
+    },
+    {
+      "type": "BREAK",
+      "label": "Lunch Break",
+      "start": "12:30",
+      "end": "13:30"
+    },
+    {
+      "start": "13:30",
+      "end": "16:00",
+      "subject": "Project Phase II",
+      "faculty": ["SEN"]
+    }
+  ],
+
+  "Thursday": [
+    {
+      "start": "08:30",
+      "end": "09:30",
+      "subject": "Honors",
+      "faculty": []
+    },
+    {
+      "start": "09:30",
+      "end": "10:30",
+      "subject": "Aviation Electronics",
+      "faculty": ["ARV"]
+    },
+    {
+      "start": "10:30",
+      "end": "11:30",
+      "subject": "VLSI Circuit Design",
+      "faculty": ["STV"]
+    },
+    {
+      "type": "BREAK",
+      "label": "Lunch Break",
+      "start": "12:30",
+      "end": "14:00"
+    },
+    {
+      "start": "14:00",
+      "end": "16:00",
+      "subject": "Project Phase II",
+      "faculty": ["SEN"]
+    }
+  ],
+
+  "Friday": [
+    {
+      "start": "08:30",
+      "end": "09:30",
+      "subject": "Honors",
+      "faculty": []
+    },
+    {
+      "start": "09:30",
+      "end": "10:30",
+      "subject": "Aviation Electronics",
+      "faculty": ["ARV"]
+    },
+    {
+      "start": "10:30",
+      "end": "11:30",
+      "subject": "VLSI Circuit Design",
+      "faculty": ["STV"]
+    },
+    {
+      "type": "BREAK",
+      "label": "Lunch Break",
+      "start": "12:30",
+      "end": "14:00"
+    },
+    {
+      "start": "14:00",
+      "end": "16:00",
+      "subject": "Project Phase II",
+      "faculty": ["SEN"]
+    }
+  ]
+}

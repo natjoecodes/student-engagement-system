@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classroom Analytics – Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}">
+      <span>Government Engineering College<br />Kozhikode</span>
+    </div>
+
+    <!-- RIGHT SIDE CLASS INFO -->
+<div class="class-info">
+  <span class="class-label">Class</span>
+  <span class="class-separator">:</span>
+  <span class="class-name">S8 AE & I</span>
+</div>
+  </nav>
+
+  <!-- LOGIN CONTENT -->
+  <div class="login-wrapper {% if error %}shake{% endif %}">
+    <div class="login-header">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Log in to access Classroom Analytics</p>
+    </div>
+
+    <div class="login-card">
+      <form action="/login" method="POST">
+        <div class="input-group">
+          <input type="text" id="username" name="username" placeholder="Enter your username" required />
+        </div>
+        <div class="input-group">
+          <input type="password" id="password" name="password" placeholder="Enter your password" required />
+        </div>
+        {% if error %}
+      <div class="login-error">{{ error }}</div>
+        {% endif %}
+        <button type="submit" class="login-btn">Login</button>
+        <p class="login-footer">Forgot your password? <a href="#">Reset here</a></p>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

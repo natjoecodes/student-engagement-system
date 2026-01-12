@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classroom Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="College Logo" />
+            <span>Government Engineering College<br />Kozhikode</span>
+        </div>
+        <div class="nav-context">
+    <div class="nav-subject" id="subjectName">—</div>
+
+    <div class="nav-meta">
+    <span class="nav-faculty">
+        Faculty: <b id="facultyName">—</b>
+    </span>
+</div>
+</div>
+        <div class="navbar-actions">
+    <span id="realtime-datetime"></span>
+    <a href="#" class="logout-btn" id="logoutBtn">Logout</a>
+</div>
+    </nav>
+
+    <main class="dashboard-container">
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+            <div class="card history-card">
+            <h3>History of Classes</h3>
+            <ul class="history-list">
+                <li>DSP – 09:00–09:50</li>
+                <li>IoT – 10:00–10:50</li>
+                <li>Control – 11:00–11:50</li>
+            </ul>
+            </div>
+
+            <div class="card heatmap-card">
+  <h3>Engagement Heatmap</h3>
+
+  <div class="heatmap-grid" id="heatmapGrid"></div>
+
+  <div class="heatmap-footer">
+    <span>Avg: <b id="avgEng">—</b>%</span>
+    <span>Peak: <b id="peakEng">—</b>%</span>
+  </div>
+</div>
+        </div>
+
+        <!-- CENTER PANEL -->
+        <div class="center-panel">
+            <div class="chart-wrapper">
+            <h2>Live Attentiveness Trend</h2>
+            <canvas id="attentionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="scoped-alert">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-emphasis">Low attentiveness</span>
+            <span class="alert-text">detected in the last 2 minutes</span>
+        </div>
+
+        <div class="right-panel">
+            <div class="card">
+                <div class="card-info">
+                    <h3>Temperature</h3>
+                    <p id="tempValue">-- °C</p>
+                </div>
+                <img src="{{ url_for('static', filename='assets/temperature.png') }}" alt="Temperature Icon" class="card-icon" />
+    </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h3>Humidity</h3>
+                    <p id="humValue">-- %</p>
+                </div>
+                <img src="{{ url_for('static', filename='assets/humidity.png') }}" alt="Humidity Icon" class="card-icon" />
+    </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h3>Ambient Sound</h3>
+                    <p id="noiseValue">--</p>
+                </div>
+                 <img src="{{ url_for('static', filename='assets/sound.png') }}" alt="Sound Icon" class="card-icon" />
+    </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h3>Ambient Light</h3>
+                    <p id="lightValue">--</p>
+                </div>
+                <img src="{{ url_for('static', filename='assets/light.png') }}" alt="Light Icon" class="card-icon" />
+    </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h3>CO₂ Level</h3>
+                    <p id="co2Value">--</p>
+                </div>
+                <img src="{{ url_for('static', filename='assets/co2.png') }}" alt="CO₂ Icon" class="card-icon" />
+    </div>
+        </div>
+    </main>
+
+    <div class="bottom-controls">
+        <button id="startBtn">Start</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="stopBtn">Stop</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+        <div class="modal-overlay" id="logoutModal">
+      <div class="modal">
+        <button type="button" class="modal-close" id="closeLogout" aria-label="Close dialog">✕</button>
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to log out?</p>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" id="cancelLogout">No</button>
+          <a href="/logout" class="modal-btn confirm">Yes</a>
+        </div>
+      </div>
+    </div>
+
+
+</body>
+</html>
