@@ -1,3 +1,22 @@
+# 🎓 Multimodal Student Engagement Analytics System
+
+## Overview
+
+This project implements a **real-time student attention monitoring system** using computer vision and a live dashboard.  
+The system follows a **microservice architecture**, separating attention inference from visualization for clarity, scalability, and maintainability.
+
+Instead of emotion recognition or heavy machine learning models, the system relies on **explainable geometric facial cues** such as eye openness and head orientation to estimate attention in real time.
+
+---
+
+## System Architecture
+
+The project consists of two independent services:
+
+student-engagement-system/
+├── attention-engine/      # Computer vision & attention inference
+└── dashboard-server/      # Visualization & user interface
+
 ### 1. Attention Engine (Port 5001)
 - Headless Flask service
 - Captures webcam frames
