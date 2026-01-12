@@ -7,6 +7,8 @@ The system follows a **microservice architecture**, separating attention inferen
 
 Instead of emotion recognition or heavy machine learning models, the system relies on **explainable geometric facial cues** such as eye openness and head orientation to estimate attention in real time.
 
+Designed by Nathan Jose V
+
 ---
 
 ## System Architecture
