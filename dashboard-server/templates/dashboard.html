@@ -43,9 +43,17 @@
     </button>
   </div>
 
-  <ul class="history-list" id="recentHistory">
-    <!-- Last 2 sessions injected by JS -->
-  </ul>
+  <div class="history-content">
+
+  <div class="history-item primary" id="latestSession">
+    <!-- injected by JS -->
+  </div>
+
+  <div class="history-sublist" id="recentHistory">
+    <!-- remaining sessions -->
+  </div>
+
+</div>
 </div>
 
             <div class="card heatmap-card">
@@ -140,11 +148,25 @@
     <div class="modal-overlay" id="historyModal">
   <div class="modal large">
     <button class="modal-close" id="closeHistoryModal">✕</button>
-    <h3>All Class Sessions</h3>
-
-    <div class="session-list" id="allSessionsList">
-      <!-- Full session list injected by JS -->
+    <div class="modal-header">
+      <h3>All Class Sessions</h3>
     </div>
+
+   <div class="session-list-wrapper">
+
+  <!-- RECENT -->
+  <div class="session-section">
+    <div class="session-section-label">Recent sessions</div>
+    <div class="session-list" id="recentSessionsList"></div>
+  </div>
+
+  <!-- PAST -->
+  <div class="session-section">
+    <div class="session-section-label">Past sessions</div>
+    <div class="session-list past" id="pastSessionsList"></div>
+  </div>
+
+</div>
   </div>
 </div>
 

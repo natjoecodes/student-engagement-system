@@ -390,16 +390,12 @@ async function loadSessionHistory() {
     const res = await fetch("http://localhost:5001/sessions");
     const sessions = await res.json();
 
-    const recent = sessions.slice(0, 2);
-    const list = document.getElementById("recentHistory");
-    list.innerHTML = "";
+    if (!sessions || !sessions.length) return;
 
-    recent.forEach(s => {
-      const li = document.createElement("li");
-      li.textContent = `${s[3]} • Avg ${Math.round(s[4])}%`;
-      list.appendChild(li);
-    });
+    // ✅ NEW history card
+    renderHistoryCard(sessions);
 
+    // ✅ Modal lists
     renderAllSessions(sessions);
 
   } catch (err) {
@@ -407,26 +403,70 @@ async function loadSessionHistory() {
   }
 }
 
-function renderAllSessions(sessions) {
-  const container = document.getElementById("allSessionsList");
-  container.innerHTML = "";
+function renderHistoryCard(sessions) {
+  if (!sessions || !sessions.length) return;
 
-  sessions.forEach(s => {
+  const latestEl = document.getElementById("latestSession");
+  const listEl = document.getElementById("recentHistory");
+
+  if (!latestEl || !listEl) return;
+
+  // Clear everything
+  latestEl.innerHTML = "";
+  listEl.innerHTML = "";
+
+  // Take last TWO sessions
+  const recentTwo = sessions.slice(0, 2);
+
+  // FIRST session → reuse primary
+  const first = recentTwo[0];
+  latestEl.innerHTML = `
+    <div class="title">${first[3]}</div>
+    <div class="meta">Avg ${Math.round(first[4])}%</div>
+  `;
+
+  // SECOND session → render as compact card (NOT row)
+  if (recentTwo.length > 1) {
+    const second = recentTwo[1];
+
     const card = document.createElement("div");
-    card.className = "session-card";
+    card.className = "history-item primary compact";
 
     card.innerHTML = `
-      <b>${s[3]}</b>
-      <div class="session-meta">
-        ${new Date(s[1]).toLocaleString()}
-      </div>
-      <div class="session-stats">
-        <span>Avg: ${Math.round(s[4])}%</span>
-        <span>Peak: ${Math.round(s[5])}%</span>
-      </div>
+      <div class="title">${second[3]}</div>
+      <div class="meta">Avg ${Math.round(second[4])}%</div>
     `;
 
-    container.appendChild(card);
-  });
+    listEl.appendChild(card);
+  }
 }
 
+function renderAllSessions(sessions) {
+  const recentContainer = document.getElementById("recentSessionsList");
+  const pastContainer = document.getElementById("pastSessionsList");
+
+  recentContainer.innerHTML = "";
+  pastContainer.innerHTML = "";
+
+  const recent = sessions.slice(0, 5);
+  const past = sessions.slice(5);
+
+  recent.forEach(s => recentContainer.appendChild(createSessionCard(s)));
+  past.forEach(s => pastContainer.appendChild(createSessionCard(s)));
+}
+
+function createSessionCard(s) {
+  const card = document.createElement("div");
+  card.className = "session-card";
+
+  card.innerHTML = `
+    <b>${s[3]}</b>
+    <div class="session-meta">${new Date(s[1]).toLocaleString()}</div>
+    <div class="session-stats">
+      <span>Avg: ${Math.round(s[4])}%</span>
+      <span>Peak: ${Math.round(s[5])}%</span>
+    </div>
+  `;
+
+  return card;
+}

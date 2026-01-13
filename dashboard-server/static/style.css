@@ -666,6 +666,7 @@ body {
    9. History card header
    ========================================================================== */
 
+
 .history-header {
   display: flex;
   justify-content: space-between;
@@ -685,6 +686,11 @@ body {
 }
 
 /* History list */
+
+.modal-header {
+  margin-bottom: 12px;   /* controlled spacing */
+}
+
 .history-list {
   list-style: none;
   padding: 0;
@@ -718,10 +724,286 @@ body {
 }
 
 .modal.large {
-  width: min(90vw, 1000px);
-  max-height: 85vh;
-  padding: 32px 36px;
-  overflow-y: auto;
+  width: min(96vw, 1280px);
+  max-height: 95vh;
+  padding: 28px 32px;
+  border-radius: 24px;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.14),
+      rgba(255,255,255,0.06)
+    );
+
+  box-shadow:
+    0 40px 90px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+
+  overflow: hidden;
+}
+
+.modal.large h3 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
   text-align: left;
 }
 
+.modal.large .modal-close {
+  top: 18px;
+  right: 22px;
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  padding: 20px;              /* ← THIS creates hover headroom */
+  box-sizing: border-box;
+}
+
+@media (min-width: 1200px) {
+  .session-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.session-card {
+  padding: 16px 18px;
+  border-radius: 16px;
+  padding-left: 36px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.10),
+      rgba(255,255,255,0.04)
+    );
+
+  border: 1px solid rgba(255,255,255,0.12);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.session-card::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow:
+    0 0 0 4px rgba(167,139,250,0.15),
+    0 0 12px rgba(167,139,250,0.6);
+  will-change: transform;
+}
+
+.session-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+}
+
+.session-list-wrapper {
+  padding-top: 0;
+  padding-bottom: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.session-card b {
+  font-size: 1.03rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+
+.session-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.session-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+  justify-content: center;
+}
+
+.session-stats span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  font-size: 0.85rem;      /* ↑ from 0.85 */
+  font-weight: 550;
+  padding: 6px 14px;
+}
+
+.session-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.session-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+}
+
+.session-card:nth-child(-n+5) {
+  background: linear-gradient(
+    180deg,
+    rgba(167,139,250,0.18),
+    rgba(255,255,255,0.06)
+  );
+  border-color: rgba(167,139,250,0.35);
+}
+
+.session-card:nth-child(-n+5):hover {
+  transform: translateY(-10px) scale(1.03);
+}
+
+.session-section-label {
+  margin: 4px 0 15px;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+
+.session-section {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* Past sessions look calmer */
+.session-list.past .session-card {
+  opacity: 0.85;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.06),
+    rgba(255,255,255,0.03)
+  );
+}
+
+.session-list.past .session-card:hover {
+  opacity: 1;
+}
+
+/* HISTORY CARD CORE */
+.history-card {
+  position: relative;
+}
+
+.history-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* PRIMARY (latest) SESSION */
+.history-item.primary {
+  padding: 14px 16px;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(167,139,250,0.18),
+    rgba(255,255,255,0.06)
+  );
+
+  border: 1px solid rgba(167,139,250,0.35);
+
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.history-item.primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+
+/* PRIMARY TEXT */
+.history-item.primary .title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.history-item.primary .meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* SECONDARY LIST */
+.history-sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-sublist .history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 0.85rem;
+  color: var(--muted);
+
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.history-sublist .history-row:hover {
+  color: var(--text);
+}
+
+.history-expand {
+  opacity: 0.6;
+}
+
+.history-card:hover .history-expand {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Compact version of history card */
+.history-item.primary.compact {
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.08),
+    rgba(255,255,255,0.04)
+  );
+
+  border: 1px solid rgba(255,255,255,0.18);
+}
+
+/* Slightly smaller text */
+.history-item.primary.compact .title {
+  font-size: 0.88rem;
+}
+
+.history-item.primary.compact .meta {
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
