@@ -225,10 +225,15 @@ body {
   transition: 0.3s ease;
 }
 
-.card:hover {
-  transform: translateY(-5px);
+/* Cards that are actually clickable / actionable */
+.card.interactive {
+  cursor: pointer;
+}
+
+.card.interactive:hover {
+  transform: translateY(-4px);
   background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .card h2, .card h3 {
