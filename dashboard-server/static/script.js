@@ -322,12 +322,18 @@ function updateButtonStates() {
 
   // --- History Modal Logic (FIXED) ---
 const historyModal = document.getElementById("historyModal");
-const openHistory = document.getElementById("openHistoryModal");
+const openHistoryCard = document.getElementById("openHistoryCard");
+const openHistoryArrow = document.getElementById("openHistoryModal");
 const closeHistory = document.getElementById("closeHistoryModal");
 
-if (historyModal && openHistory && closeHistory) {
-  openHistory.addEventListener("click", () => {
-    historyModal.classList.add("active");
+if (historyModal && closeHistory) {
+
+  const open = () => historyModal.classList.add("active");
+
+  openHistoryCard?.addEventListener("click", open);
+  openHistoryArrow?.addEventListener("click", (e) => {
+    e.stopPropagation(); // prevent double fire
+    open();
   });
 
   closeHistory.addEventListener("click", () => {
@@ -392,52 +398,11 @@ async function loadSessionHistory() {
 
     if (!sessions || !sessions.length) return;
 
-    // ✅ NEW history card
-    renderHistoryCard(sessions);
-
     // ✅ Modal lists
     renderAllSessions(sessions);
 
   } catch (err) {
     console.error("Failed to load sessions", err);
-  }
-}
-
-function renderHistoryCard(sessions) {
-  if (!sessions || !sessions.length) return;
-
-  const latestEl = document.getElementById("latestSession");
-  const listEl = document.getElementById("recentHistory");
-
-  if (!latestEl || !listEl) return;
-
-  // Clear everything
-  latestEl.innerHTML = "";
-  listEl.innerHTML = "";
-
-  // Take last TWO sessions
-  const recentTwo = sessions.slice(0, 2);
-
-  // FIRST session → reuse primary
-  const first = recentTwo[0];
-  latestEl.innerHTML = `
-    <div class="title">${first[3]}</div>
-    <div class="meta">Avg ${Math.round(first[4])}%</div>
-  `;
-
-  // SECOND session → render as compact card (NOT row)
-  if (recentTwo.length > 1) {
-    const second = recentTwo[1];
-
-    const card = document.createElement("div");
-    card.className = "history-item primary compact";
-
-    card.innerHTML = `
-      <div class="title">${second[3]}</div>
-      <div class="meta">Avg ${Math.round(second[4])}%</div>
-    `;
-
-    listEl.appendChild(card);
   }
 }
 

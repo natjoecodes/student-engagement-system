@@ -35,7 +35,7 @@
     <main class="dashboard-container">
         <!-- LEFT PANEL -->
         <div class="left-panel">
-            <div class="card history-card">
+            <div class="card history-card interactive" id="openHistoryCard" role="button" tabindex="0">
   <div class="history-header">
     <h3>History of Classes</h3>
     <button class="history-expand" id="openHistoryModal" title="View all sessions">
@@ -43,17 +43,6 @@
     </button>
   </div>
 
-  <div class="history-content">
-
-  <div class="history-item primary" id="latestSession">
-    <!-- injected by JS -->
-  </div>
-
-  <div class="history-sublist" id="recentHistory">
-    <!-- remaining sessions -->
-  </div>
-
-</div>
 </div>
 
             <div class="card heatmap-card">

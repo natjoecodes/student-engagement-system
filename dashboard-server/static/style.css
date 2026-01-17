@@ -15,7 +15,15 @@
   --controls-h: 70px;
   --grid-gap: 30px;
   --card-gap: 24px;
-  --alert-h: 46px;
+  --alert-h: 52px;
+
+  /* ======= Border Radius ======= */
+  /* Radius scale intentionally restrained for data-dense SaaS UI.
+   Do NOT increase unless component size increases globally. */
+
+  --radius-lg: 16px;   /* ALL primary cards */
+  --radius-md: 12px;   /* Inner cards / panels */
+  --radius-sm: 4px;    /* Micro elements */
 }
 
 * {
@@ -51,7 +59,7 @@ body {
   grid-column: 1;
   grid-row: 1;
   display: grid;
-  grid-template-rows: 2.5fr 1fr; /* history : heatmap */
+  grid-template-rows: auto 1fr;
   gap: var(--card-gap);
   min-height: 0;
 }
@@ -95,6 +103,54 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   z-index: 10;
+}
+
+/* --- Login Variant Navbar --- */
+.navbar--login {
+  grid-template-columns: auto 1fr;
+}
+
+.class-info {
+  justify-self: end;
+  display: flex;
+  align-items: center;     /* 🔴 single line */
+  gap: 6px;
+
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--muted);
+
+  white-space: nowrap;     /* 🔴 prevents wrapping */
+}
+
+.class-info .class-name {
+  color: var(--text);
+  font-weight: 600;
+
+  position: relative;
+  display: inline-block;       /* 🔴 KEY */
+  align-items: center;
+
+  line-height: 1;           
+
+}
+
+.class-info .class-name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 100%;               /* 🔴 attach to text bottom */
+  margin-top: 4px;         /* 🔴 consistent optical gap */
+
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(167,139,250,1),
+    rgba(167,139,250,1)
+  );
 }
 
 .nav-context {
@@ -219,7 +275,7 @@ body {
   padding: 18px;
   background: var(--card-bg);
   backdrop-filter: blur(18px);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: 0.3s ease;
@@ -236,15 +292,13 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.card h2, .card h3 {
+.card h2 {
   text-align: center;
-  margin-bottom: 14px;
-  font-weight: 600;
-  color: var(--text);
 }
 
-/* --- Panel Specific Card Overrides --- */
-.left-panel .card:first-child { overflow-y: auto; }
+.card h3 {
+  text-align: left;
+}
 
 .left-panel h2 {
   font-size: 1.8rem;
@@ -299,7 +353,7 @@ body {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
-  border-radius: 28px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
@@ -325,16 +379,18 @@ body {
   color: var(--text);
   font-weight: 500;
   letter-spacing: 0.2px;
-  border-radius: 20px;
+  border-radius: 14px; 
   border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow:
+  0 12px 28px rgba(0, 0, 0, 0.35),
+  inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .scoped-alert::before {
   content: "";
   width: 3px;
   height: 60%;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(180deg, #fbbf24, #f59e0b);
   box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25);
 }
@@ -350,6 +406,24 @@ body {
   justify-content: flex-start;
 }
 
+/* LOCKED HEATMAP HEIGHT */
+.heatmap-card {
+  height: 100%;
+  min-height: 260px;   /* adjust once, never again */
+  max-height: 260px;
+}
+
+/* Grid always occupies same space */
+.heatmap-grid {
+  flex: 1;
+  align-content: start;
+}
+
+/* Empty-state cells still take space */
+.heatmap-cell {
+  background: rgba(255,255,255,0.08);
+}
+
 .heatmap-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -359,7 +433,7 @@ body {
 
 .heatmap-cell {
   aspect-ratio: 1 / 1;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: rgba(255,255,255,0.08);
   transition: transform 0.2s ease;
 }
@@ -374,15 +448,6 @@ body {
 }
 
 .heatmap-footer b { color: var(--text); }
-
-/* --- Lists --- */
-.history-list li {
-  padding: 8px 0;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.history-list li:hover { color: var(--text); }
 
 /* ==========================================================================
    5. MODALS
@@ -410,7 +475,7 @@ body {
 .modal {
   width: 340px;
   padding: 28px 30px 26px;
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15);
@@ -570,7 +635,7 @@ body {
   text-align: center;
   background: var(--card-bg);
   padding: 40px 60px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(25px);
   box-shadow: var(--shadow);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -592,7 +657,7 @@ body {
   padding: 12px;
   margin: 10px 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: rgba(17, 24, 39, 0.5);
   color: var(--text);
   font-size: 1rem;
@@ -615,7 +680,7 @@ body {
 .login-btn {
   background: var(--accent);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 12px 30px;
   font-size: 1rem;
   font-weight: 600;
@@ -623,6 +688,7 @@ body {
   color: white;
   transition: 0.3s ease;
   box-shadow: 0 4px 15px rgba(167, 139, 250, 0.2);
+  margin-top: 14px;
 }
 
 .login-btn:hover {
@@ -668,33 +734,86 @@ body {
 }
 
 /* ==========================================================================
-   9. History card header
+   9. HISTORY (CARD + MODAL + SESSIONS)
    ========================================================================== */
 
+/* =========================
+   History Card (Dashboard)
+   ========================= */
+
+.history-card {
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 0 24px; 
+  border-radius: var(--radius-lg);
+  position: relative;
+  cursor: pointer;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.08);
+
+  border-color: rgba(167,139,250,0.35);
+
+  transition:
+    background 0.45s cubic-bezier(.22,.61,.36,1),
+    box-shadow 0.45s cubic-bezier(.22,.61,.36,1),
+    border-color 0.45s cubic-bezier(.22,.61,.36,1);
+
+  transition: all 0.45s cubic-bezier(.22,.61,.36,1);
+}
+
+.history-card:hover {
+  background: rgba(255,255,255,0.08);
+
+  border-color: rgba(255,255,255,0.12);
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
 
 .history-header {
-  display: flex;
-  justify-content: space-between;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
+}
+
+.history-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 550;
+  line-height: 1.1;
 }
 
 .history-expand {
   background: none;
   border: none;
   color: #a78bfa;
-  font-size: 1rem;
+  font-size: 1.05rem;
   cursor: pointer;
+
+  display: flex;
+  align-items: center;
+
+  margin-left: 16px;   /* pushes arrow slightly right */
+  padding-right: 2px; /* moves arrow closer to edge */
+  opacity: 0.45;
+
+  transition:
+    opacity 0.45s cubic-bezier(.22,.61,.36,1),
+    transform translateX(0);
 }
 
-.history-expand:hover {
-  transform: translateX(3px);
+.history-card:hover .history-expand {
+  opacity: 1;
+  transform: translateX(6px);
 }
 
-/* History list */
-
-.modal-header {
-  margin-bottom: 12px;   /* controlled spacing */
-}
+/* =========================
+   History Lists (Simple)
+   ========================= */
 
 .history-list {
   list-style: none;
@@ -704,35 +823,25 @@ body {
 
 .history-list li {
   font-size: 0.9rem;
-  padding: 6px 0;
+  padding: 8px 0;
+  color: var(--muted);
+  cursor: pointer;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Session cards inside modal */
-.session-card {
-  padding: 12px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  margin-bottom: 12px;
+.history-list li:hover {
+  color: var(--text);
 }
 
-.session-meta {
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-.session-stats {
-  margin-top: 6px;
-  display: flex;
-  gap: 15px;
-  font-size: 0.85rem;
-}
+/* =========================
+   History Modal (Large)
+   ========================= */
 
 .modal.large {
   width: min(96vw, 1280px);
   max-height: 95vh;
   padding: 28px 32px;
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
 
   display: flex;
   flex-direction: column;
@@ -751,6 +860,10 @@ body {
   overflow: hidden;
 }
 
+.modal-header {
+  margin-bottom: 12px;
+}
+
 .modal.large h3 {
   font-size: 1.35rem;
   font-weight: 600;
@@ -766,16 +879,40 @@ body {
   opacity: 0.8;
 }
 
-.session-list {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 6px;
+/* =========================
+   Session Layout
+   ========================= */
 
+.session-list-wrapper {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.session-section {
+  margin: 10px 0;
+}
+
+.session-section-label {
+  margin: 4px 0 15px;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+
+/* =========================
+   Session Grid
+   ========================= */
+
+.session-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 18px;
-  padding: 20px;              /* ← THIS creates hover headroom */
+  padding: 20px;
   box-sizing: border-box;
+
+  flex: 1;
+  overflow-y: auto;
 }
 
 @media (min-width: 1200px) {
@@ -784,10 +921,24 @@ body {
   }
 }
 
+/* Scrollbar */
+.session-list::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-sm);
+}
+
+.session-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius-sm);
+}
+
+/* =========================
+   Session Cards
+   ========================= */
+
 .session-card {
-  padding: 16px 18px;
-  border-radius: 16px;
-  padding-left: 36px;
+  position: relative;
+  padding: 16px 18px 16px 36px;
+  border-radius: var(--radius-md);
 
   background:
     linear-gradient(
@@ -803,8 +954,6 @@ body {
   gap: 10px;
 
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  position: relative;
-  overflow: hidden;
 }
 
 .session-card::before {
@@ -819,7 +968,6 @@ body {
   box-shadow:
     0 0 0 4px rgba(167,139,250,0.15),
     0 0 12px rgba(167,139,250,0.6);
-  will-change: transform;
 }
 
 .session-card:hover {
@@ -827,12 +975,37 @@ body {
   box-shadow: 0 18px 40px rgba(0,0,0,0.45);
 }
 
-.session-list-wrapper {
-  padding-top: 0;
-  padding-bottom: 0;
-  height: 100%;
-  overflow-y: auto;
+/* Highlight recent */
+.session-card:nth-child(-n+5) {
+  background: linear-gradient(
+    180deg,
+    rgba(167,139,250,0.18),
+    rgba(255,255,255,0.06)
+  );
+  border-color: rgba(167,139,250,0.35);
 }
+
+.session-card:nth-child(-n+5):hover {
+  transform: translateY(-10px) scale(1.03);
+}
+
+/* Past sessions */
+.session-list.past .session-card {
+  opacity: 0.85;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.06),
+    rgba(255,255,255,0.03)
+  );
+}
+
+.session-list.past .session-card:hover {
+  opacity: 1;
+}
+
+/* =========================
+   Session Metadata
+   ========================= */
 
 .session-card b {
   font-size: 1.03rem;
@@ -849,166 +1022,13 @@ body {
 .session-stats {
   display: flex;
   gap: 20px;
-  font-size: 0.85rem;
   justify-content: center;
+  font-size: 0.85rem;
 }
 
 .session-stats span {
-  padding: 4px 10px;
+  padding: 6px 14px;
   border-radius: 999px;
   background: rgba(255,255,255,0.08);
-  font-size: 0.85rem;      /* ↑ from 0.85 */
   font-weight: 550;
-  padding: 6px 14px;
-}
-
-.session-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.session-list::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
-  border-radius: 10px;
-}
-
-.session-card:nth-child(-n+5) {
-  background: linear-gradient(
-    180deg,
-    rgba(167,139,250,0.18),
-    rgba(255,255,255,0.06)
-  );
-  border-color: rgba(167,139,250,0.35);
-}
-
-.session-card:nth-child(-n+5):hover {
-  transform: translateY(-10px) scale(1.03);
-}
-
-.session-section-label {
-  margin: 4px 0 15px;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
-}
-
-.session-section {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-/* Past sessions look calmer */
-.session-list.past .session-card {
-  opacity: 0.85;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.06),
-    rgba(255,255,255,0.03)
-  );
-}
-
-.session-list.past .session-card:hover {
-  opacity: 1;
-}
-
-/* HISTORY CARD CORE */
-.history-card {
-  position: relative;
-}
-
-.history-content {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* PRIMARY (latest) SESSION */
-.history-item.primary {
-  padding: 14px 16px;
-  border-radius: 14px;
-
-  background: linear-gradient(
-    180deg,
-    rgba(167,139,250,0.18),
-    rgba(255,255,255,0.06)
-  );
-
-  border: 1px solid rgba(167,139,250,0.35);
-
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.history-item.primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-}
-
-/* PRIMARY TEXT */
-.history-item.primary .title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.history-item.primary .meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-/* SECONDARY LIST */
-.history-sublist {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.history-sublist .history-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  font-size: 0.85rem;
-  color: var(--muted);
-
-  padding: 6px 4px;
-  cursor: pointer;
-}
-
-.history-sublist .history-row:hover {
-  color: var(--text);
-}
-
-.history-expand {
-  opacity: 0.6;
-}
-
-.history-card:hover .history-expand {
-  opacity: 1;
-  transform: translateX(4px);
-}
-
-/* Compact version of history card */
-.history-item.primary.compact {
-  padding: 12px 14px;
-  border-radius: 12px;
-
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.08),
-    rgba(255,255,255,0.04)
-  );
-
-  border: 1px solid rgba(255,255,255,0.18);
-}
-
-/* Slightly smaller text */
-.history-item.primary.compact .title {
-  font-size: 0.88rem;
-}
-
-.history-item.primary.compact .meta {
-  font-size: 0.72rem;
-  opacity: 0.7;
 }
