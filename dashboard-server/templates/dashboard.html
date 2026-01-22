@@ -16,7 +16,10 @@
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="College Logo" />
-            <span>Government Engineering College<br />Kozhikode</span>
+            <span class="logo-text">
+            <span class="logo-line-1">Government Engineering College</span>
+            <span class="logo-line-2">Kozhikode</span>
+            </span>
         </div>
         <div class="nav-context">
     <div class="nav-subject" id="subjectName">—</div>
@@ -29,7 +32,9 @@
 </div>
         <div class="navbar-actions">
     <span id="realtime-datetime"></span>
-    <a href="#" class="logout-btn" id="logoutBtn">Logout</a>
+    <div class="logout-wrap">
+  <a href="#" class="logout-btn">Logout</a>
+</div>
 </div>
     </nav>
 

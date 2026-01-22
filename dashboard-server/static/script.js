@@ -393,6 +393,7 @@ function updateButtonStates() {
 
   // --- Initialize Components ---
   initAttentionChart();
+  renderHeatmap([]);
   renderInsight("health");
   updateDateTime();
   setInterval(updateDateTime, 1000);
