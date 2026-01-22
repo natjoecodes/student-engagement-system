@@ -22,6 +22,26 @@ document.addEventListener("DOMContentLoaded", () => {
   let timetableData = {};
   let facultyData = {};
 
+  const INSIGHTS = [
+  "health",
+  "timeBelow",
+  "pattern"
+];
+
+let currentInsightIndex = 0;
+let forcedInsight = null;
+let forceTimeout = null;
+
+const insightCard = document.getElementById("sessionInsightCard");
+const insightTitle = document.getElementById("insightTitle");
+const insightValue = document.getElementById("insightValue");
+const insightSub = document.getElementById("insightSub");
+
+const insightLabel = document.getElementById("insightLabel");
+const insightAvg = document.getElementById("insightAvg");
+const insightStability = document.getElementById("insightStability");
+const insightRisk = document.getElementById("insightRisk");
+
   /* ==========================================================================
      2. DATA FETCHING (API & JSON)
      ========================================================================== */
@@ -113,9 +133,11 @@ function renderHeatmap(data) {
   if (!grid) return;
   grid.innerHTML = "";
 
-  const columns = 12;
-  const rows = 3;
-  const maxCells = columns * rows;
+const columns = 12;
+const rows = getComputedStyle(document.getElementById("heatmapGrid"))
+  .gridTemplateRows.split(" ").length;
+
+const maxCells = columns * rows;
 
   if (!data.length) {
     for (let i = 0; i < maxCells; i++) {
@@ -151,6 +173,84 @@ function renderHeatmap(data) {
   peakEng.textContent = peak;
 }
 
+ /* ==========================================================================
+     3.1. SESSION INSIGHTS LOGIC
+     ========================================================================== */
+
+
+function computeSessionHealth() {
+  if (!attentionData.length) return null;
+
+  const avg =
+    attentionData.reduce((a, b) => a + b, 0) / attentionData.length;
+
+  const volatility =
+    Math.sqrt(
+      attentionData
+        .map(v => Math.pow(v - avg, 2))
+        .reduce((a, b) => a + b, 0) / attentionData.length
+    );
+
+  let health = Math.round(avg - volatility / 2);
+  health = Math.max(0, Math.min(100, health));
+
+  return { health, volatility };
+}
+
+function computeTimeBelowThreshold(threshold = 40) {
+  return attentionData.filter(v => v < threshold).length * 5; // seconds
+}
+
+function renderInsight(type) {
+  if (type === "health") {
+  const data = computeSessionHealth();
+  if (!data) return;
+
+  const avg =
+    attentionData.reduce((a, b) => a + b, 0) / attentionData.length;
+
+  const volatility = data.volatility;
+  const health = data.health;
+
+  // Primary
+  insightTitle.textContent = "Session Health";
+  insightValue.textContent = `${health} / 100`;
+
+  // Label
+  let label = "Stable Engagement";
+  if (volatility > 25) label = "Highly Volatile";
+  else if (health < 60) label = "At Risk";
+
+  insightLabel.textContent = label;
+
+  // Breakdown
+  insightAvg.textContent = `Avg: ${Math.round(avg)}%`;
+  insightStability.textContent =
+    `Stability: ${volatility < 20 ? "High" : "Low"}`;
+  insightRisk.textContent =
+    `Risk: ${health < 60 ? "High" : "Low"}`;
+
+  // Context
+  insightSub.textContent =
+    volatility > 25
+      ? "Large fluctuations detected"
+      : "Consistent engagement pattern";
+}
+
+  if (type === "timeBelow") {
+    const seconds = computeTimeBelowThreshold();
+    insightTitle.textContent = "Low Attention Time";
+    insightValue.textContent = `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+    insightSub.textContent = "Below 40% attentiveness";
+  }
+
+  if (type === "pattern") {
+    insightTitle.textContent = "Engagement Pattern";
+    insightValue.textContent = "Early Drop-off";
+    insightSub.textContent = "Detected this session";
+  }
+}
+
   /* ==========================================================================
      4. SESSION CONTROL (START/PAUSE/STOP)
      ========================================================================== */
@@ -181,6 +281,19 @@ if (value === null) return; // skip this tick
     timeLabels.push(`${min}:${sec}`);
     attentionData.push(value);
     heatmapData.push(value);
+
+    const lowTime = computeTimeBelowThreshold();
+
+if (lowTime > 120 && forcedInsight !== "timeBelow") {
+  forcedInsight = "timeBelow";
+  renderInsight("timeBelow");
+
+  clearTimeout(forceTimeout);
+  forceTimeout = setTimeout(() => {
+    forcedInsight = null;
+    renderInsight("health");
+  }, 7000);
+}
 
     renderHeatmap(heatmapData);
     attentionChart.update();
@@ -280,6 +393,7 @@ function updateButtonStates() {
 
   // --- Initialize Components ---
   initAttentionChart();
+  renderInsight("health");
   updateDateTime();
   setInterval(updateDateTime, 1000);
   
@@ -435,3 +549,12 @@ function createSessionCard(s) {
 
   return card;
 }
+
+insightCard?.addEventListener("click", () => {
+  if (forcedInsight) return;
+
+  currentInsightIndex =
+    (currentInsightIndex + 1) % INSIGHTS.length;
+
+  renderInsight(INSIGHTS[currentInsightIndex]);
+});

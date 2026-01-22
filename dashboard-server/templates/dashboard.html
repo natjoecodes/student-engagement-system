@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='mediaqueries.css') }}">
 </head>
 <body>
 
@@ -45,15 +46,33 @@
 
 </div>
 
-            <div class="card heatmap-card">
-  <h3>Engagement Heatmap</h3>
-
-  <div class="heatmap-grid" id="heatmapGrid"></div>
-
-  <div class="heatmap-footer">
-    <span>Avg: <b id="avgEng">—</b>%</span>
-    <span>Peak: <b id="peakEng">—</b>%</span>
+  <div class="card heatmap-card">
+    <h3>Engagement Heatmap</h3>
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+    <div class="heatmap-footer">
+      <span>Avg: <b id="avgEng">—</b>%</span>
+      <span>Peak: <b id="peakEng">—</b>%</span>
+    </div>
   </div>
+
+  <div class="card session-insight-card" id="sessionInsightCard">
+  <h3 id="insightTitle">Session Health</h3>
+
+  <!-- Primary verdict -->
+  <div class="insight-main">
+    <span class="insight-value" id="insightValue">—</span>
+    <span class="insight-label" id="insightLabel">—</span>
+  </div>
+
+  <!-- Breakdown -->
+  <div class="insight-breakdown" id="insightBreakdown">
+    <span id="insightAvg">Avg: —%</span>
+    <span id="insightStability">Stability: —</span>
+    <span id="insightRisk">Risk: —</span>
+  </div>
+
+  <!-- Context line -->
+  <div class="insight-sub" id="insightSub"></div>
 </div>
         </div>
 

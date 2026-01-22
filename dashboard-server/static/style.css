@@ -45,23 +45,30 @@ body {
    ========================================================================== */
 .dashboard-container {
   display: grid;
-  grid-template-columns: 400px minmax(500px, 1fr) 340px;
-  grid-template-rows: calc(100% - var(--alert-h) - var(--grid-gap)) var(--alert-h);
+  grid-template-columns:
+    minmax(320px, 380px)
+    minmax(420px, 1fr)
+    minmax(280px, 320px);
+  grid-template-rows: 1fr auto;
   gap: var(--grid-gap);
   height: calc(100vh - var(--navbar-h) - var(--controls-h));
   margin-top: var(--navbar-h);
-  margin-bottom: var(--controls-h);
   padding: var(--grid-gap);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: var(--grid-gap);
 }
 
 .left-panel {
   grid-column: 1;
   grid-row: 1;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto minmax(200px, 1fr);
+  grid-auto-rows: minmax(0, auto);
+  align-content: start;
   gap: var(--card-gap);
   min-height: 0;
+  overflow: visible;
 }
 
 .center-panel {
@@ -272,7 +279,7 @@ body {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  padding: 18px;
+  padding: 20px;
   background: var(--card-bg);
   backdrop-filter: blur(18px);
   border-radius: var(--radius-lg);
@@ -400,23 +407,12 @@ body {
 
 /* --- Heatmap --- */
 .heatmap-card {
-  padding: 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-}
-
-/* LOCKED HEATMAP HEIGHT */
-.heatmap-card {
-  height: 100%;
-  min-height: 260px;   /* adjust once, never again */
-  max-height: 260px;
-}
-
-/* Grid always occupies same space */
-.heatmap-grid {
-  flex: 1;
-  align-content: start;
+  min-height: 200px;
+  overflow: hidden;
 }
 
 /* Empty-state cells still take space */
@@ -426,16 +422,21 @@ body {
 
 .heatmap-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  grid-auto-rows: column;
   gap: 6px;
-  margin: 16px 0;
+  margin: 12px 0 10px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .heatmap-cell {
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.08);
-  transition: transform 0.2s ease;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.12);
+  width: 100%;
+  height: 100%;
 }
 
 .heatmap-cell:hover { transform: scale(1.08); }
@@ -443,11 +444,81 @@ body {
 .heatmap-footer {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.90rem;
   color: var(--muted);
 }
 
 .heatmap-footer b { color: var(--text); }
+
+/* ==========================================================================
+   4.1 SESSION INSIGHT CARDS
+   ========================================================================== */
+
+.session-insight-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  justify-content: center;
+  text-align: center;
+}
+
+.session-insight-card h3 {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.session-insight-card {
+  gap: 14px;
+}
+
+/* Big number */
+.insight-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.insight-value {
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.insight-label {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Breakdown row */
+.insight-breakdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Context line */
+.insight-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.insight-main {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.insight-sub {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
 
 /* ==========================================================================
    5. MODALS
