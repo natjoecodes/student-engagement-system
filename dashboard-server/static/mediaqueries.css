@@ -93,10 +93,6 @@
     gap: 20px;
   }
 
-  .heatmap-card {
-    min-height: 170px;
-  }
-
   .heatmap-grid {
     margin: 12px 0;
   }
@@ -134,12 +130,6 @@
   }
 }
 
-@media (orientation: landscape) and (max-height: 720px) {
-  .heatmap-card {
-    min-height: 150px;
-  }
-}
-
 /* =========================================================
    4. VERY SHORT LANDSCAPE (EDGE CASE)
    < 720px height
@@ -155,11 +145,6 @@
   .left-panel,
   .right-panel {
     gap: 16px;
-  }
-
-  .heatmap-card {
-    height: 120px;
-    min-height: 120px;
   }
 
   .insight-value {
