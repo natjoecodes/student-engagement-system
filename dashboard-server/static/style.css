@@ -120,6 +120,13 @@ body {
   padding-top: 2px;
 }
 
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
 /* --- Login Variant Navbar --- */
 .navbar--login {
   grid-template-columns: auto 1fr;
@@ -156,7 +163,6 @@ body {
   left: 0;
   top: 100%;               /* 🔴 attach to text bottom */
   margin-top: 4px;         /* 🔴 consistent optical gap */
-
   width: 100%;
   height: 2px;
   border-radius: 2px;
@@ -175,6 +181,7 @@ body {
   align-items: center;
   justify-content: center;      /* 🔑 true vertical centering */
   gap: 2px;
+  position: relative;
 }
 
 .nav-subject {
@@ -224,6 +231,67 @@ body {
   font-weight: 600;
 }
 
+/* ===== Session Status Pill (Persistent) ===== */
+
+.session-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 5px 12px;
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  border: 1px solid transparent;
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 2px 8px rgba(0,0,0,0.25);
+
+  transition: all 0.25s ease;
+}
+
+/* Dot */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+}
+
+/* ===== STATES ===== */
+
+/* 🔴 Inactive / Stopped */
+.session-status.inactive {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+/* 🟡 Paused */
+.session-status.paused {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+/* 🟢 Live */
+.session-status.active {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 0 10px rgba(16,185,129,0.45);
+}
+
 .nav-separator {
   opacity: 0.6;
 }
@@ -234,7 +302,7 @@ body {
   gap: 12px;
   white-space: nowrap;   /* 🔒 hard lock */
   flex-shrink: 0;        /* 🔒 prevents compression */
-  transform: translateX(-14px);
+  transform: translateX(-10px);
 }
 
 .logo-text {
@@ -246,6 +314,10 @@ body {
 .logo-line-1,
 .logo-line-2 {
   white-space: nowrap;
+}
+
+.logo-line-1{
+  margin-bottom: 3px;
 }
 
 .logo img {
@@ -288,7 +360,6 @@ body {
   background: linear-gradient(90deg, #ef4444, #f87171);
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
   transition: all 0.3s ease;
-  transform: translateX(14px);
 }
 
 .logout-btn:hover {

@@ -42,6 +42,35 @@ const insightAvg = document.getElementById("insightAvg");
 const insightStability = document.getElementById("insightStability");
 const insightRisk = document.getElementById("insightRisk");
 
+updateSessionStatus("inactive");
+
+/* ==========================================================================
+     1a. SESSION STATUS UPDATER
+     ========================================================================== */
+
+function updateSessionStatus(state) {
+  if (!sessionStatus) return;
+
+  sessionStatus.classList.remove("active", "paused", "inactive");
+
+  const text = sessionStatus.querySelector(".status-text");
+
+  if (state === "active") {
+    sessionStatus.classList.add("active");
+    text.textContent = "Session Live";
+  }
+
+  if (state === "paused") {
+    sessionStatus.classList.add("paused");
+    text.textContent = "Session Paused";
+  }
+
+  if (state === "inactive") {
+    sessionStatus.classList.add("inactive");
+    text.textContent = "Session Inactive";
+  }
+}
+
   /* ==========================================================================
      2. DATA FETCHING (API & JSON)
      ========================================================================== */
@@ -321,6 +350,7 @@ async function stopChartPlotting() {
   sessionActive = false;
   sessionPaused = false;
   pauseBtn.textContent = "Pause";
+  updateSessionStatus("inactive");
 
   // 🔥 HARD RESET UI STATE
   attentionData.length = 0;
@@ -480,6 +510,7 @@ if (historyModal && closeHistory) {
 
     sessionActive = true;
     sessionPaused = false;
+    updateSessionStatus("active");
     startChartPlotting();
 
   } catch (e) {
@@ -488,15 +519,20 @@ if (historyModal && closeHistory) {
 });
 
     pauseBtn.addEventListener("click", () => {
-      if (!sessionActive) return;
-      if (!sessionPaused) {
-        pauseChartPlotting();
-        pauseBtn.textContent = "Resume";
-      } else {
-        resumeChartPlotting();
-        pauseBtn.textContent = "Pause";
-      }
-    });
+  if (!sessionActive) return;
+
+  if (!sessionPaused) {
+    pauseChartPlotting();
+    sessionPaused = true;
+    pauseBtn.textContent = "Resume";
+    updateSessionStatus("paused");
+  } else {
+    resumeChartPlotting();
+    sessionPaused = false;
+    pauseBtn.textContent = "Pause";
+    updateSessionStatus("active");
+  }
+});
 
     stopBtn.addEventListener("click", () => {
       if (!sessionActive) return;

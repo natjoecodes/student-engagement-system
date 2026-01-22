@@ -14,13 +14,21 @@
 <body>
 
     <nav class="navbar">
+
+      <div class="nav-left">
         <div class="logo">
             <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="College Logo" />
             <span class="logo-text">
-            <span class="logo-line-1">Government Engineering College</span>
-            <span class="logo-line-2">Kozhikode</span>
+            <span class="logo-line-1">Government Engineering</span>
+            <span class="logo-line-2">College Kozhikode</span>
             </span>
         </div>
+
+        <div class="session-status" id="sessionStatus">
+    <span class="status-dot"></span>
+    <span class="status-text">Session Inactive</span>
+  </div>
+  </div>
         <div class="nav-context">
     <div class="nav-subject" id="subjectName">—</div>
 
