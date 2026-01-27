@@ -9,9 +9,17 @@ document.addEventListener("DOMContentLoaded", () => {
      1. GLOBAL STATE & VARIABLES
      ========================================================================== */
   let attentionChart;
-  let attentionData = [];
+  let attentionDataAll = [];
+  let attentionDataWindow = [];
   let timeLabels = [];
   let heatmapData = [];
+
+  // ===== Live window config =====
+  const WINDOW_SECONDS = 90;   // 1.5 minute
+  const ALERT_SECONDS = 120;    // 2 minutes
+  const SAMPLE_INTERVAL = 5;    // seconds
+  const MAX_POINTS = WINDOW_SECONDS / SAMPLE_INTERVAL;
+  const ALERT_POINTS = ALERT_SECONDS / SAMPLE_INTERVAL;
 
   let sessionActive = false;
   let sessionPaused = false;
@@ -124,20 +132,88 @@ function updateSessionStatus(state) {
       data: {
         labels: timeLabels,
         datasets: [{
-          label: "Attentiveness (%)",
-          data: attentionData,
-          borderWidth: 2,
-          tension: 0.35,
-          fill: false
-        }]
+  data: attentionDataWindow,
+  shadowColor: "rgba(99,102,241,0.35)",
+shadowBlur: 12,
+
+  // 🔵 Gradient stroke (dynamic)
+  borderColor: (ctx) => {
+    const chart = ctx.chart;
+    const {ctx: c, chartArea} = chart;
+    if (!chartArea) return "#7dd3fc";
+
+    const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    gradient.addColorStop(0, "#93c5fd");
+    gradient.addColorStop(1, "#6366f1");
+    return gradient;
+  },
+
+  // 🌊 Subtle area fill
+  fill: {
+    target: "origin",
+    above: "rgba(99,102,241,0.06)"
+  },
+
+  borderWidth: 2.5,
+  tension: 0.35,
+
+  // 🎯 Points only matter when bad
+  pointRadius: (ctx) => ctx.raw < 40 ? 3 : 0,
+  pointBackgroundColor: "rgba(248,113,113,0.75)",
+  pointBorderColor: "rgba(248,113,113,0.9)",
+  pointBorderWidth: 1,
+  pointHoverRadius: 5
+}]
       },
+      devicePixelRatio: window.devicePixelRatio || 1,
       options: {
         animation: false,
+          plugins: {
+          legend: {
+            display: false
+          }
+        },
+        layout: {
+  padding: 0
+},
+        maintainAspectRatio: false,
         responsive: true,
+        interaction: {
+        intersect: false,
+        mode: "index"
+      },
         scales: {
-          y: { min: 0, max: 100, title: { display: true, text: "Attentiveness (%)" } },
-          x: { title: { display: true, text: "Time (mm:ss)" } }
-        }
+        y: {
+  min: 0,
+  max: 100,
+  ticks: {
+    padding: 10,          // 🔥 pushes labels away from axis
+    align: "center",      // 🔥 prevents vertical drift
+    font: { size: 11 }
+  },
+  grid: {
+    drawTicks: false
+  },
+  border: { display: false }
+},
+        x: {
+  ticks: {
+    color: "rgba(148,163,184,0.6)",
+    maxTicksLimit: 6,
+    padding: 12,          // 🔥 THIS moves labels down
+    font: {
+      size: 11,
+      lineHeight: 1.3
+    }
+  },
+  grid: {
+    drawTicks: false
+  },
+  border: {
+    display: false
+  }
+}
+      }
       }
     });
   }
@@ -208,16 +284,16 @@ const maxCells = columns * rows;
 
 
 function computeSessionHealth() {
-  if (!attentionData.length) return null;
+  if (!attentionDataAll.length) return null;
 
   const avg =
-    attentionData.reduce((a, b) => a + b, 0) / attentionData.length;
+    attentionDataAll.reduce((a, b) => a + b, 0) / attentionDataAll.length;
 
   const volatility =
     Math.sqrt(
-      attentionData
+      attentionDataAll
         .map(v => Math.pow(v - avg, 2))
-        .reduce((a, b) => a + b, 0) / attentionData.length
+        .reduce((a, b) => a + b, 0) / attentionDataAll.length
     );
 
   let health = Math.round(avg - volatility / 2);
@@ -227,7 +303,8 @@ function computeSessionHealth() {
 }
 
 function computeTimeBelowThreshold(threshold = 40) {
-  return attentionData.filter(v => v < threshold).length * 5; // seconds
+  const recent = attentionDataWindow.slice(-ALERT_POINTS);
+  return recent.filter(v => v < threshold).length * SAMPLE_INTERVAL;
 }
 
 function renderInsight(type) {
@@ -236,7 +313,7 @@ function renderInsight(type) {
   if (!data) return;
 
   const avg =
-    attentionData.reduce((a, b) => a + b, 0) / attentionData.length;
+    attentionDataAll.reduce((a, b) => a + b, 0) / attentionDataAll.length;
 
   const volatility = data.volatility;
   const health = data.health;
@@ -287,9 +364,10 @@ function renderInsight(type) {
 function startChartPlotting() {
   if (chartInterval) return; // HARD LOCK
 
-  attentionData.length = 0;
-  timeLabels.length = 0;
-  heatmapData.length = 0;
+  attentionDataAll.length = 0;
+attentionDataWindow.length = 0;
+timeLabels.length = 0;
+heatmapData.length = 0;
 
   attentionChart.update();
   renderHeatmap([]);
@@ -307,9 +385,21 @@ function startChartPlotting() {
     const value = await computeAttentiveness();
 if (value === null) return; // skip this tick
 
-    timeLabels.push(`${min}:${sec}`);
-    attentionData.push(value);
-    heatmapData.push(value);
+    // 1️⃣ Full-session memory
+attentionDataAll.push(value);
+
+// 2️⃣ Live window (chart + alert)
+attentionDataWindow.push(value);
+timeLabels.push(`${min}:${sec}`);
+
+// 🔪 HARD SLIDING WINDOW
+if (attentionDataWindow.length > MAX_POINTS) {
+  attentionDataWindow.shift();
+  timeLabels.shift();
+}
+
+// 3️⃣ Heatmap keeps rolling history
+heatmapData.push(value);
 
     const lowTime = computeTimeBelowThreshold();
 
@@ -353,9 +443,10 @@ async function stopChartPlotting() {
   updateSessionStatus("inactive");
 
   // 🔥 HARD RESET UI STATE
-  attentionData.length = 0;
-  timeLabels.length = 0;
-  heatmapData.length = 0;
+  attentionDataAll.length = 0;
+attentionDataWindow.length = 0;
+timeLabels.length = 0;
+heatmapData.length = 0;
 
   attentionChart.update();
   renderHeatmap([]);

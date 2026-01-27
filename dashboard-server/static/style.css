@@ -1,7 +1,12 @@
 /* ==========================================================================
    1. CORE VARIABLES & RESET
    ========================================================================== */
-:root {
+
+   body {
+  height: 100dvh;
+}
+
+   :root {
   /* ======= Core Color Scheme (Premium Dark) ======= */
   --bg: linear-gradient(180deg, #111827, #0d1117);
   --card-bg: rgba(255, 255, 255, 0.07);
@@ -49,9 +54,9 @@ body {
     minmax(320px, 380px)
     minmax(420px, 1fr)
     minmax(280px, 320px);
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 1fr var(--alert-h);
   gap: var(--grid-gap);
-  height: calc(100vh - var(--navbar-h) - var(--controls-h));
+  height: calc(100dvh - var(--navbar-h) - var(--controls-h));
   margin-top: var(--navbar-h);
   padding: var(--grid-gap);
   overflow-y: auto;
@@ -82,6 +87,11 @@ body {
   grid-column: 2;
   grid-row: 1;
   display: flex;
+  min-height: 0;
+}
+
+.center-panel > .chart-wrapper {
+  height: 100%;
   min-height: 0;
 }
 
@@ -479,22 +489,48 @@ body {
 
 .chart-wrapper {
   width: 100%;
-  height: 100%;
-  padding: 24px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));
+  padding: 20px 22px 28px;
+  flex: 1;
+  min-height: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.10),
+    rgba(255, 255, 255, 0.04)
+  );
+
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   border-radius: var(--radius-lg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
+
+  /* 🔴 IMPORTANT CHANGES */
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  overflow: hidden;
 }
 
-#attentionChart { flex: 1; }
+.chart-wrapper h2 {
+  margin: 0;
+  padding-bottom: 6px;
+
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  align-items: center;
+}
+
+#attentionChart {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: block;
+}
 
 /* --- Alert Bar --- */
 .scoped-alert {
@@ -502,6 +538,7 @@ body {
   grid-row: 2;
   display: flex;
   align-items: center;
+  box-sizing: border-box;
   gap: 14px;
   padding: 0 20px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.05));
@@ -515,6 +552,12 @@ body {
   box-shadow:
   0 12px 28px rgba(0, 0, 0, 0.35),
   inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.scoped-alert {
+  height: var(--alert-h);
+  min-height: var(--alert-h);
+  max-height: var(--alert-h);
 }
 
 .scoped-alert::before {
@@ -591,10 +634,10 @@ body {
   text-align: center;
 }
 
-.session-insight-card h3 {
-  font-size: 0.95rem;
-  color: var(--muted);
-  margin-bottom: 10px;
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .session-insight-card {
@@ -612,6 +655,11 @@ body {
   font-size: 2.6rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.insight-value.muted {
+  font-size: 1.6rem;
+  color: var(--muted);
 }
 
 .insight-label {
