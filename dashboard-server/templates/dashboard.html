@@ -93,6 +93,9 @@
         <div class="center-panel">
             <div class="chart-wrapper">
             <h2>Live Attentiveness Trend</h2>
+            <div class="session-timer" id="sessionTimer" hidden>
+              Session inactive
+            </div>
             <canvas id="attentionChart"></canvas>
             </div>
         </div>
@@ -166,31 +169,37 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="historyModal">
-  <div class="modal large">
+<div class="modal-overlay" id="historyModal">
+  <div class="modal large history-modal">
     <button class="modal-close" id="closeHistoryModal">✕</button>
-    <div class="modal-header">
-      <h3>All Class Sessions</h3>
+
+    <!-- Header -->
+    <div class="history-modal-header">
+      <div class="history-title-wrap">
+        <h3>Recent Class Sessions</h3>
+        <span class="history-subtitle">
+          Last recorded classes from this system
+        </span>
+      </div>
     </div>
 
-   <div class="session-list-wrapper">
+    <!-- Content -->
+    <div class="session-list-wrapper">
+      <div class="session-list" id="recentSessionsList"></div>
 
-  <!-- RECENT -->
-  <div class="session-section">
-    <div class="session-section-label">Recent sessions</div>
-    <div class="session-list" id="recentSessionsList"></div>
-  </div>
-
-  <!-- PAST -->
-  <div class="session-section">
-    <div class="session-section-label">Past sessions</div>
-    <div class="session-list past" id="pastSessionsList"></div>
-  </div>
-
+      <div class="history-empty" id="historyEmpty" hidden>
+        No sessions recorded yet
+      </div>
+    </div>
+    <!-- Footer -->
+<div class="history-modal-footer">
+  <a href="/sessions" class="history-manage-link">
+    Manage all sessions
+    <i class="fas fa-arrow-right"></i>
+  </a>
 </div>
   </div>
 </div>
-
 
 </body>
 </html>

@@ -21,6 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const MAX_POINTS = WINDOW_SECONDS / SAMPLE_INTERVAL;
   const ALERT_POINTS = ALERT_SECONDS / SAMPLE_INTERVAL;
 
+  const sessionTimerEl = document.getElementById("sessionTimer");
+  let timerInterval = null;
+
   let sessionActive = false;
   let sessionPaused = false;
   let chartInterval = null;
@@ -432,6 +435,16 @@ if (lowTime > 120 && forcedInsight !== "timeBelow") {
   }
 
 async function stopChartPlotting() {
+
+  // ===== STOP SESSION TIMER =====
+clearInterval(timerInterval);
+timerInterval = null;
+
+if (sessionTimerEl) {
+  sessionTimerEl.hidden = true;
+  sessionTimerEl.textContent = "Session inactive";
+  sessionTimerEl.className = "session-timer";
+}
   if (chartInterval) {
     clearInterval(chartInterval);
     chartInterval = null;
@@ -506,6 +519,22 @@ function updateButtonStates() {
     const current = getCurrentClassFromTimetable();
     subjectEl.textContent = current.subject;
     facultyEl.textContent = current.faculty;
+  }
+
+  /* ==========================================================================
+     5.1 SESSION TIMER
+     ========================================================================== */
+
+    function formatElapsed(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+
+    if (h > 0) {
+      return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    }
+    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
   }
 
   /* ==========================================================================
@@ -604,6 +633,20 @@ if (historyModal && closeHistory) {
     updateSessionStatus("active");
     startChartPlotting();
 
+    // ===== START SESSION TIMER =====
+    sessionTimerEl.hidden = false;
+    sessionTimerEl.className = "session-timer active";
+    sessionTimerEl.textContent = "Session Live · 00:00";
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (!sessionActive || sessionPaused) return;
+
+      const elapsed = Date.now() - sessionStartTime;
+      sessionTimerEl.textContent =
+        `Session Live · ${formatElapsed(elapsed)}`;
+    }, 1000);
+
   } catch (e) {
     console.error("Failed to start session", e);
   }
@@ -617,17 +660,24 @@ if (historyModal && closeHistory) {
     sessionPaused = true;
     pauseBtn.textContent = "Resume";
     updateSessionStatus("paused");
+    document.querySelector(".chart-wrapper")?.classList.add("paused");
+    sessionTimerEl.className = "session-timer paused";
+    sessionTimerEl.textContent =
+      `⏸ Session Paused · ${formatElapsed(Date.now() - sessionStartTime)}`;
   } else {
     resumeChartPlotting();
     sessionPaused = false;
     pauseBtn.textContent = "Pause";
     updateSessionStatus("active");
+    document.querySelector(".chart-wrapper")?.classList.remove("paused");
+    sessionTimerEl.className = "session-timer active";
   }
 });
 
     stopBtn.addEventListener("click", () => {
       if (!sessionActive) return;
       stopChartPlotting();
+      document.querySelector(".chart-wrapper")?.classList.remove("paused");
       pauseBtn.textContent = "Pause";
     });
   }
@@ -650,16 +700,19 @@ async function loadSessionHistory() {
 
 function renderAllSessions(sessions) {
   const recentContainer = document.getElementById("recentSessionsList");
-  const pastContainer = document.getElementById("pastSessionsList");
+  const emptyState = document.getElementById("historyEmpty");
 
   recentContainer.innerHTML = "";
-  pastContainer.innerHTML = "";
 
-  const recent = sessions.slice(0, 5);
-  const past = sessions.slice(5);
+  const recent = sessions.slice(0, 6); // 2 rows max on desktop
 
+  if (!recent.length) {
+    emptyState.hidden = false;
+    return;
+  }
+
+  emptyState.hidden = true;
   recent.forEach(s => recentContainer.appendChild(createSessionCard(s)));
-  past.forEach(s => pastContainer.appendChild(createSessionCard(s)));
 }
 
 function createSessionCard(s) {
@@ -674,6 +727,10 @@ function createSessionCard(s) {
       <span>Peak: ${Math.round(s[5])}%</span>
     </div>
   `;
+
+  card.addEventListener("click", () => {
+    window.location.href = `/sessions/${s[0]}`;
+  });
 
   return card;
 }
