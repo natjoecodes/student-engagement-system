@@ -59,6 +59,16 @@ const insightRisk = document.getElementById("insightRisk");
 
 updateSessionStatus("inactive");
 
+const backBtn = document.getElementById("backBtn");
+
+backBtn?.addEventListener("click", () => {
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "/dashboard";
+  }
+});
+
 /* ==========================================================================
      1a. SESSION STATUS UPDATER
      ========================================================================== */

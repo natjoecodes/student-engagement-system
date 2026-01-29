@@ -1571,3 +1571,73 @@ body {
 .row-checkbox:focus-visible {
   box-shadow: 0 0 0 3px rgba(167,139,250,0.35);
 }
+
+/* =========================
+   Back Button (Sessions Page)
+   ========================= */
+
+.sessions-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.back-btn {
+  position: relative;              /* 🔴 key change */
+  left: 60px;    
+  top: 9px;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: var(--text);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  z-index: 20;                  /* above content */
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(255,255,255,0.16);
+  transform: translateX(-2px);
+}
+
+.back-btn i{
+  font-size: 1rem;
+}
+
+.back-btn:active {
+  transform: translateX(-1px);
+}
+
+.sessions-title-row {
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center; /* keeps title centered */
+}
+
+/* Title stays visually centered */
+.sessions-title {
+  margin: 0;
+  font-size: 1.95rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  margin-bottom: 26px;
+  color: var(--text);
+  position: relative;
+}
+
+/* Back button pinned to left */
+.sessions-title-row .back-btn {
+  position: absolute;
+  left: 0;
+}
