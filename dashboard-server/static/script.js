@@ -4,7 +4,7 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadSessionHistory();
+
   /* ==========================================================================
      1. GLOBAL STATE & VARIABLES
      ========================================================================== */
@@ -20,6 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const SAMPLE_INTERVAL = 5;    // seconds
   const MAX_POINTS = WINDOW_SECONDS / SAMPLE_INTERVAL;
   const ALERT_POINTS = ALERT_SECONDS / SAMPLE_INTERVAL;
+
+  const sessionStatus = document.getElementById("sessionStatus");
+
+  const subjectName = document.getElementById("subjectName");
 
   const sessionTimerEl = document.getElementById("sessionTimer");
   let timerInterval = null;
@@ -44,7 +48,7 @@ let forcedInsight = null;
 let forceTimeout = null;
 
 const insightCard = document.getElementById("sessionInsightCard");
-const insightTitle = document.getElementById("insightTitle");
+const insightTitle = document.getElementById("card-title");
 const insightValue = document.getElementById("insightValue");
 const insightSub = document.getElementById("insightSub");
 
@@ -469,17 +473,17 @@ heatmapData.length = 0;
 
   try {
     await fetch("http://127.0.0.1:5001/session/stop", { method: "POST" });
-    loadSessionHistory();
   } catch (e) {
     console.error("Failed to stop session", e);
   }
 }
 
-function updateButtonStates() {
+/* function updateButtonStates() {
   startBtn.disabled = sessionActive;
   pauseBtn.disabled = !sessionActive;
   stopBtn.disabled = !sessionActive;
 }
+*/
 
   /* ==========================================================================
      5. UI UPDATES (TIME & NAVBAR)
@@ -583,35 +587,6 @@ function updateButtonStates() {
     });
   }
 
-  // HIstory Tab Modal Logic
-
-  // --- History Modal Logic (FIXED) ---
-const historyModal = document.getElementById("historyModal");
-const openHistoryCard = document.getElementById("openHistoryCard");
-const openHistoryArrow = document.getElementById("openHistoryModal");
-const closeHistory = document.getElementById("closeHistoryModal");
-
-if (historyModal && closeHistory) {
-
-  const open = () => historyModal.classList.add("active");
-
-  openHistoryCard?.addEventListener("click", open);
-  openHistoryArrow?.addEventListener("click", (e) => {
-    e.stopPropagation(); // prevent double fire
-    open();
-  });
-
-  closeHistory.addEventListener("click", () => {
-    historyModal.classList.remove("active");
-  });
-
-  historyModal.addEventListener("click", (e) => {
-    if (e.target === historyModal) {
-      historyModal.classList.remove("active");
-    }
-  });
-}
-
   // --- Session Control Listeners ---
   const startBtn = document.getElementById("startBtn");
   const pauseBtn = document.getElementById("pauseBtn");
@@ -681,65 +656,18 @@ if (historyModal && closeHistory) {
       pauseBtn.textContent = "Pause";
     });
   }
-});
 
-async function loadSessionHistory() {
-  try {
-    const res = await fetch("http://localhost:5001/sessions");
-    const sessions = await res.json();
+// --- Insight Card Listener ---
 
-    if (!sessions || !sessions.length) return;
+  if (insightCard) {
+  insightCard.addEventListener("click", () => {
+    if (forcedInsight) return;
 
-    // ✅ Modal lists
-    renderAllSessions(sessions);
+    currentInsightIndex =
+      (currentInsightIndex + 1) % INSIGHTS.length;
 
-  } catch (err) {
-    console.error("Failed to load sessions", err);
-  }
-}
-
-function renderAllSessions(sessions) {
-  const recentContainer = document.getElementById("recentSessionsList");
-  const emptyState = document.getElementById("historyEmpty");
-
-  recentContainer.innerHTML = "";
-
-  const recent = sessions.slice(0, 6); // 2 rows max on desktop
-
-  if (!recent.length) {
-    emptyState.hidden = false;
-    return;
-  }
-
-  emptyState.hidden = true;
-  recent.forEach(s => recentContainer.appendChild(createSessionCard(s)));
-}
-
-function createSessionCard(s) {
-  const card = document.createElement("div");
-  card.className = "session-card";
-
-  card.innerHTML = `
-    <b>${s[3]}</b>
-    <div class="session-meta">${new Date(s[1]).toLocaleString()}</div>
-    <div class="session-stats">
-      <span>Avg: ${Math.round(s[4])}%</span>
-      <span>Peak: ${Math.round(s[5])}%</span>
-    </div>
-  `;
-
-  card.addEventListener("click", () => {
-    window.location.href = `/sessions/${s[0]}`;
+    renderInsight(INSIGHTS[currentInsightIndex]);
   });
-
-  return card;
 }
 
-insightCard?.addEventListener("click", () => {
-  if (forcedInsight) return;
-
-  currentInsightIndex =
-    (currentInsightIndex + 1) % INSIGHTS.length;
-
-  renderInsight(INSIGHTS[currentInsightIndex]);
 });

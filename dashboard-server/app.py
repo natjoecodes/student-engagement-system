@@ -51,6 +51,14 @@ def dashboard():
         return redirect('/')
     return render_template('dashboard.html')
 
+# Route for sessions page
+
+@app.route("/sessions")
+def sessions():
+    if 'user' not in session:
+        return redirect('/')
+    return render_template("sessions.html")
+
 # logout route
 @app.route('/logout')
 def logout():

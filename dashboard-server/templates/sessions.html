@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Sessions</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- SAME GLOBAL STYLES -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR (COPIED, NOT INCLUDED) ================= -->
+
+<nav class="navbar">
+
+  <div class="nav-left">
+    <a href="/dashboard" class="logo" style="text-decoration:none; color:inherit;">
+  <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="College Logo" />
+  <span class="logo-text">
+    <span class="logo-line-1">Government Engineering</span>
+    <span class="logo-line-2">College Kozhikode</span>
+  </span>
+</a>
+
+    <div class="session-status inactive">
+      <span class="status-dot"></span>
+      <span class="status-text">Session Archive</span>
+    </div>
+  </div>
+
+  <div class="nav-context">
+    <div class="nav-subject">Manage Sessions</div>
+    <div class="nav-meta">
+      <span class="nav-faculty">
+        Logged in as <b>{{ session.get('user', '—') }}</b>
+      </span>
+    </div>
+  </div>
+
+  <div class="navbar-actions">
+    <span id="realtime-datetime"></span>
+    <div class="logout-wrap">
+      <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+  </div>
+
+</nav>
+
+<!-- ================= MAIN CONTENT ================= -->
+
+<main class="dashboard-container">
+
+  <!-- LEFT PANEL: SESSION LIST -->
+  <div class="left-panel">
+
+    <div class="card">
+      <h3>All Sessions</h3>
+
+      <input
+        type="text"
+        placeholder="Search by subject / faculty / date"
+        class="session-search"
+        style="
+          margin: 12px 0;
+          padding: 10px 14px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #f8fafc;
+        "
+      />
+
+      <div class="session-list" id="allSessionsList">
+        <!-- JS will populate -->
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- CENTER PANEL: SESSION DETAILS -->
+  <div class="center-panel">
+
+    <div class="card session-insight-card">
+
+      <h3>Session Overview</h3>
+
+      <div class="insight-breakdown">
+        <span>Subject</span>
+        <b id="detailSubject">—</b>
+      </div>
+
+      <div class="insight-breakdown">
+        <span>Date</span>
+        <b id="detailDate">—</b>
+      </div>
+
+      <div class="insight-breakdown">
+        <span>Duration</span>
+        <b id="detailDuration">—</b>
+      </div>
+
+      <div class="insight-breakdown">
+        <span>Average</span>
+        <b id="detailAvg">—%</b>
+      </div>
+
+      <div class="insight-breakdown">
+        <span>Peak</span>
+        <b id="detailPeak">—%</b>
+      </div>
+
+      <div style="display:flex; gap:16px; margin-top:18px;">
+        <button class="modal-btn cancel" style="flex:1;">Export CSV</button>
+        <button class="modal-btn confirm" style="flex:1;">Delete</button>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
