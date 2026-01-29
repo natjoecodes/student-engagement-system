@@ -87,6 +87,86 @@ function updateSessionStatus(state) {
 }
 
   /* ==========================================================================
+     1b. SESSION HISTORY LOADER
+     ========================================================================== */
+
+async function loadSessionHistory() {
+  const list = document.getElementById("allSessionsList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  try {
+    const res = await fetch("/api/sessions");
+    if (!res.ok) throw new Error("Failed to fetch sessions");
+
+    const sessions = await res.json();
+
+    if (!sessions.length) {
+      list.innerHTML = `
+        <div style="opacity:0.6; text-align:center; grid-column:1/-1;">
+          No sessions recorded yet
+        </div>`;
+      return;
+    }
+
+sessions.forEach(s => {
+  const start = new Date(s.start_time);
+  const end = s.end_time ? new Date(s.end_time) : null;
+
+  const duration = end
+    ? Math.round((end - start) / 60000) + " min"
+    : "—";
+
+const row = document.createElement("div");
+row.className = "session-row";
+
+row.innerHTML = `
+  <input type="checkbox" class="session-select" data-id="${s.id}" />
+
+  <div>
+    <div style="font-weight:600">${s.subject}</div>
+    <div style="font-size:0.75rem; opacity:0.6">
+      ID: ${s.id}
+    </div>
+  </div>
+
+  <div style="font-size:0.85rem; opacity:0.75">
+    ${start.toLocaleString()}
+  </div>
+
+  <div style="font-size:0.85rem">
+    ${duration}
+  </div>
+
+  <button class="row-menu-btn">
+    <i class="fas fa-ellipsis-v"></i>
+  </button>
+`;
+
+list.appendChild(row);
+});
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `
+      <div style="color:#f87171; grid-column:1/-1; text-align:center;">
+        Failed to load sessions
+      </div>`;
+  }
+}
+
+const selectAll = document.getElementById("selectAll");
+
+if (selectAll) {
+  selectAll.addEventListener("change", e => {
+    document
+      .querySelectorAll(".session-select")
+      .forEach(cb => cb.checked = e.target.checked);
+  });
+}
+
+  /* ==========================================================================
      2. DATA FETCHING (API & JSON)
      ========================================================================== */
 
@@ -551,6 +631,8 @@ heatmapData.length = 0;
   renderInsight("health");
   updateDateTime();
   setInterval(updateDateTime, 1000);
+
+  loadSessionHistory();
   
   // --- Timetable Logic ---
   loadTimetableData().then(() => {

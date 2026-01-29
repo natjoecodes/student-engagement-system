@@ -59,6 +59,20 @@ def sessions():
         return redirect('/')
     return render_template("sessions.html")
 
+import requests
+
+@app.route("/api/sessions")
+def api_sessions():
+    if 'user' not in session:
+        return jsonify([]), 401
+
+    try:
+        res = requests.get("http://127.0.0.1:5001/sessions", timeout=3)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Session proxy error:", e)
+        return jsonify([]), 500
+
 # logout route
 @app.route('/logout')
 def logout():

@@ -41,7 +41,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
+  min-height: 100vh;
   overflow: hidden;
 }
 
@@ -1067,32 +1067,216 @@ body {
    Dedicated Session Page Layout
    ========================= */
 
-   .session-search {
-  padding: 10px 14px;
-  margin: 12px 0;
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
+.sessions-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.sessions-header {
+  text-align: center;
+  position: relative;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  padding-bottom: 36px;
+}
+
+.sessions-header::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+
+  width: 320px;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(167,139,250,0.45),
+    transparent
+  );
+}
+
+.sessions-header h2 {
+  font-size: 1.95rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  margin-bottom: 26px;
   color: var(--text);
+  position: relative;
 }
 
-.session-detail-card .detail-row {
+.session-search-hero {
   display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
+  align-items: center;
+  gap: 10px;
+
+  max-width: 680px;
+  margin: 0 auto;
+
+  padding: 6px 10px 6px 14px;  /* 👈 slimmer */
+  height: 52px;               /* 👈 controlled height */
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.10),
+    rgba(255,255,255,0.05)
+  );
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-lg);;
+
+  backdrop-filter: blur(18px);
+  transition: 
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.session-search-hero:focus-within {
+  background: rgba(167,139,250,0.08);
+  border-color: rgba(167,139,250,0.75);
+
+  box-shadow:
+    0 0 0 3px rgba(167,139,250,0.25),
+    0 12px 28px rgba(0,0,0,0.45);
+}
+
+.session-search-hero i {
   font-size: 0.9rem;
+  color: rgba(255,255,255,0.5);
 }
 
-.detail-actions {
+.session-search-hero input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+
+  font-size: 0.95rem;
+  color: var(--text);
+
+  padding: 0 4px;
+}
+
+.session-search-hero input::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+.search-btn {
+  height: 38px;
+  padding: 0 20px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(167,139,250,0.45);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+
+  color: var(--text);
+
+  background: linear-gradient(
+    180deg,
+    rgba(167,139,250,0.35),
+    rgba(167,139,250,0.18)
+  );
+
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.search-btn:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(167,139,250,0.45),
+    rgba(167,139,250,0.25)
+  );
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+.search-btn:active {
+  transform: translateY(0);
+
+  box-shadow:
+    0 3px 10px rgba(0,0,0,0.4),
+    inset 0 2px 6px rgba(0,0,0,0.35);
+}
+
+.sessions-list-wrapper {
+  margin-top: 40px;
+  max-height: calc(100vh - 260px); /* navbar + header + padding */
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.session-list {
   display: flex;
-  gap: 14px;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.detail-actions .danger {
-  background: #ef4444;
+.session-row {
+  display: grid;
+  grid-template-columns: 40px 1.5fr 1fr 100px 40px;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
 }
 
-.detail-actions .secondary {
+.session-row-header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 6px 18px;
+
+  position: sticky;
+  top: 0;
+  z-index: 5;
+
+  background: rgba(15, 23, 42, 0.95); /* dark solid */
+  backdrop-filter: blur(10px);
+
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.session-row-header span {
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.session-row-header input {
+  transform: scale(1.1);
+}
+
+.session-row:not(.session-row-header):hover {
   background: rgba(255,255,255,0.1);
+  border-color: rgba(167,139,250,0.4);
+}
+
+.session-row input[type="checkbox"] {
+  transform: scale(1.05);
 }

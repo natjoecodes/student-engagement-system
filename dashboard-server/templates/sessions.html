@@ -26,102 +26,50 @@
     <span class="logo-line-2">College Kozhikode</span>
   </span>
 </a>
-
-    <div class="session-status inactive">
-      <span class="status-dot"></span>
-      <span class="status-text">Session Archive</span>
-    </div>
-  </div>
-
-  <div class="nav-context">
-    <div class="nav-subject">Manage Sessions</div>
-    <div class="nav-meta">
-      <span class="nav-faculty">
-        Logged in as <b>{{ session.get('user', '—') }}</b>
-      </span>
-    </div>
-  </div>
-
-  <div class="navbar-actions">
-    <span id="realtime-datetime"></span>
-    <div class="logout-wrap">
-      <a href="/logout" class="logout-btn">Logout</a>
-    </div>
-  </div>
-
 </nav>
 
 <!-- ================= MAIN CONTENT ================= -->
 
-<main class="dashboard-container">
+<main class="sessions-page">
 
-  <!-- LEFT PANEL: SESSION LIST -->
-  <div class="left-panel">
+  <!-- HEADER -->
+  <section class="sessions-header">
+    <h2>History of Classes</h2>
 
-    <div class="card">
-      <h3>All Sessions</h3>
-
+    <div class="session-search-hero">
+      <i class="fas fa-search"></i>
       <input
         type="text"
-        placeholder="Search by subject / faculty / date"
-        class="session-search"
-        style="
-          margin: 12px 0;
-          padding: 10px 14px;
-          border-radius: 12px;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.15);
-          color: #f8fafc;
-        "
+        id="sessionSearch"
+        placeholder="Search by subject, faculty, or date"
       />
+      <button class="search-btn">Search</button>
+    </div>
+  </section>
 
-      <div class="session-list" id="allSessionsList">
-        <!-- JS will populate -->
-      </div>
+  <!-- SESSION LIST -->
+<section class="sessions-list-wrapper">
+  <div class="session-list">
 
+    <div class="session-row session-row-header">
+      <input type="checkbox" id="selectAll" />
+      <span>Session</span>
+      <span>Start Time</span>
+      <span>Duration</span>
+      <span></span>
+    </div>
+
+    <div id="allSessionsList">
+      <!-- rows injected here -->
     </div>
 
   </div>
+</section>
 
-  <!-- CENTER PANEL: SESSION DETAILS -->
-  <div class="center-panel">
-
-    <div class="card session-insight-card">
-
-      <h3>Session Overview</h3>
-
-      <div class="insight-breakdown">
-        <span>Subject</span>
-        <b id="detailSubject">—</b>
-      </div>
-
-      <div class="insight-breakdown">
-        <span>Date</span>
-        <b id="detailDate">—</b>
-      </div>
-
-      <div class="insight-breakdown">
-        <span>Duration</span>
-        <b id="detailDuration">—</b>
-      </div>
-
-      <div class="insight-breakdown">
-        <span>Average</span>
-        <b id="detailAvg">—%</b>
-      </div>
-
-      <div class="insight-breakdown">
-        <span>Peak</span>
-        <b id="detailPeak">—%</b>
-      </div>
-
-      <div style="display:flex; gap:16px; margin-top:18px;">
-        <button class="modal-btn cancel" style="flex:1;">Export CSV</button>
-        <button class="modal-btn confirm" style="flex:1;">Delete</button>
-      </div>
-
-    </div>
-
-  </div>
-
+  <!-- SESSION OVERVIEW (HIDDEN INITIALLY) -->
+  <section class="session-overview-wrapper hidden" id="sessionOverview">
+    <!-- reuse your existing overview card -->
+  </section>
 </main>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
