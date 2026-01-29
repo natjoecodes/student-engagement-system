@@ -120,28 +120,28 @@ sessions.forEach(s => {
 
 const row = document.createElement("div");
 row.className = "session-row";
+row.dataset.sessionId = s.id;
 
 row.innerHTML = `
-  <input type="checkbox" class="session-select" data-id="${s.id}" />
-
-  <div>
-    <div style="font-weight:600">${s.subject}</div>
-    <div style="font-size:0.75rem; opacity:0.6">
-      ID: ${s.id}
-    </div>
+  <div class="session-info">
+    <div style="font-weight:600" class="session-title">${s.subject}</div>
+    <div style="font-size:0.75rem; opacity:0.6" class="session-id">ID: ${s.id}</div>
   </div>
 
-  <div style="font-size:0.85rem; opacity:0.75">
+  <div style="font-size:0.85rem; opacity:0.75" class="session-time">
     ${start.toLocaleString()}
   </div>
 
-  <div style="font-size:0.85rem">
+  <div style="font-size:0.85rem" class="session-duration">
     ${duration}
   </div>
 
-  <button class="row-menu-btn">
-    <i class="fas fa-ellipsis-v"></i>
-  </button>
+  <div class="row-action">
+    <input type="checkbox" class="row-checkbox" />
+    <button class="row-delete-btn" title="Delete session">
+      <i class="fas fa-trash"></i>
+    </button>
+  </div>
 `;
 
 list.appendChild(row);
@@ -154,16 +154,6 @@ list.appendChild(row);
         Failed to load sessions
       </div>`;
   }
-}
-
-const selectAll = document.getElementById("selectAll");
-
-if (selectAll) {
-  selectAll.addEventListener("change", e => {
-    document
-      .querySelectorAll(".session-select")
-      .forEach(cb => cb.checked = e.target.checked);
-  });
 }
 
   /* ==========================================================================
@@ -633,8 +623,196 @@ heatmapData.length = 0;
   setInterval(updateDateTime, 1000);
 
   loadSessionHistory();
+
+/* ==========================================================================
+   6a. SELECTION MODE BUTTON
+   ========================================================================== */
+
+/* ==========================================================================
+   6a. SELECTION MODE BUTTON (SAFE)
+   ========================================================================== */
+
+const selectToggleBtn = document.getElementById("selectToggle");
+const sessionList = document.querySelector(".session-list");
+const sessionsContainer = document.getElementById("allSessionsList");
+const selectionToolbar = document.getElementById("selectionToolbar");
+
+if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
+
+  const selectionCountEl =
+    selectionToolbar.querySelector(".selection-count");
+
+  let selectionMode = false;
+
+  selectToggleBtn.addEventListener("click", () => {
+    selectionMode = !selectionMode;
+
+    sessionList.classList.toggle("selection-mode", selectionMode);
+    selectToggleBtn.classList.toggle("active", selectionMode);
+    selectToggleBtn.textContent = selectionMode ? "Cancel" : "Select";
+
+    selectionToolbar.style.display = selectionMode ? "flex" : "none";
+
+    if (!selectionMode) clearSelections();
+  });
+
+  function clearSelections() {
+    document.querySelectorAll(".row-checkbox").forEach(cb => {
+      cb.checked = false;
+      cb.closest(".session-row")?.classList.remove("selected");
+    });
+    updateSelectionCount();
+  }
+
+  function updateSelectionCount() {
+    const count =
+      document.querySelectorAll(".row-checkbox:checked").length;
+    selectionCountEl.textContent = `${count} selected`;
+  }
+
+  sessionsContainer.addEventListener("click", (e) => {
+    if (!selectionMode) return;
+
+    const row = e.target.closest(".session-row");
+    if (!row) return;
+    if (e.target.closest(".row-delete-btn")) return;
+
+    const checkbox = row.querySelector(".row-checkbox");
+    if (!checkbox) return;
+
+    if (e.target !== checkbox) {
+      checkbox.checked = !checkbox.checked;
+    }
+
+    row.classList.toggle("selected", checkbox.checked);
+    updateSelectionCount();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && selectionMode) {
+      selectionMode = false;
+      sessionList.classList.remove("selection-mode");
+      selectToggleBtn.classList.remove("active");
+      selectToggleBtn.textContent = "Select";
+      selectionToolbar.style.display = "none";
+      clearSelections();
+    }
+  });
+}
+
+/* ==========================================================================
+   6b. DELETE LOGIC (SINGLE + BULK)
+   ========================================================================== */
+
+const deleteModal = document.getElementById("deleteModal");
+const confirmDeleteBtn = document.getElementById("confirmDelete");
+const cancelDeleteBtn = document.getElementById("cancelDelete");
+const closeDeleteModal = document.getElementById("closeDeleteModal");
+
+let deleteQueue = [];
+let deleteRows = [];
+
+function openDeleteModal({ ids, rows }) {
+  deleteQueue = ids;
+  deleteRows = rows;
+
+  const title = document.getElementById("deleteModalTitle");
+  const text = document.getElementById("deleteModalText");
+
+  if (ids.length === 1) {
+    title.textContent = "Delete session?";
+    text.textContent = "This session will be permanently deleted.";
+  } else {
+    title.textContent = `Delete ${ids.length} sessions?`;
+    text.textContent = "All selected sessions will be permanently deleted.";
+  }
+
+  deleteModal.classList.add("active");
+}
+
+function closeDeleteModalFn() {
+  deleteModal.classList.remove("active");
+  deleteQueue = [];
+  deleteRows = [];
+}
+
+cancelDeleteBtn?.addEventListener("click", closeDeleteModalFn);
+closeDeleteModal?.addEventListener("click", closeDeleteModalFn);
+
+deleteModal?.addEventListener("click", (e) => {
+  if (e.target === deleteModal) closeDeleteModalFn();
+});
+
+sessionsContainer?.addEventListener("click", (e) => {
+  const deleteBtn = e.target.closest(".row-delete-btn");
+  if (!deleteBtn) return;
+
+  const row = deleteBtn.closest(".session-row");
+  if (!row) return;
+
+  const sessionId = row.dataset.sessionId;
+  if (!sessionId) return;
+
+  openDeleteModal({
+    ids: [sessionId],
+    rows: [row]
+  });
+});
+
+const bulkDeleteBtn = document.querySelector(".bulk-delete-btn");
+
+bulkDeleteBtn?.addEventListener("click", () => {
+  const checked = document.querySelectorAll(".row-checkbox:checked");
+  if (!checked.length) return;
+
+  const ids = [];
+  const rows = [];
+
+  checked.forEach(cb => {
+    const row = cb.closest(".session-row");
+    if (!row) return;
+
+    ids.push(row.dataset.sessionId);
+    rows.push(row);
+  });
+
+  openDeleteModal({ ids, rows });
+});
+
+confirmDeleteBtn?.addEventListener("click", async () => {
+  if (!deleteQueue.length) return;
+
+  try {
+    const res = await fetch("/api/sessions/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: deleteQueue })
+    });
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    // Remove rows from DOM
+    deleteRows.forEach(row => row.remove());
+
+    // Reset selection UI
+    document.querySelectorAll(".row-checkbox").forEach(cb => cb.checked = false);
+    document.querySelectorAll(".session-row").forEach(r => r.classList.remove("selected"));
+
+    const countEl = document.querySelector(".selection-count");
+    if (countEl) countEl.textContent = "0 selected";
+
+    closeDeleteModalFn();
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete sessions");
+  }
+});
   
-  // --- Timetable Logic ---
+/* ==========================================================================
+   TIME TABLE LOGIC
+   ========================================================================== */
+
   loadTimetableData().then(() => {
     setInterval(updateNavbarFromTimetable, 60000);
   });

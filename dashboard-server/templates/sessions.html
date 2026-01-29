@@ -51,13 +51,27 @@
 <section class="sessions-list-wrapper">
   <div class="session-list">
 
-    <div class="session-row session-row-header">
-      <input type="checkbox" id="selectAll" />
-      <span>Session</span>
-      <span>Start Time</span>
-      <span>Duration</span>
-      <span></span>
-    </div>
+<div class="session-row session-row-header">
+  <span>Session</span>
+  <span>Start Time</span>
+  <span>Duration</span>
+  <button id="selectToggle" class="select-toggle-btn">
+    Select
+  </button>
+</div>
+
+<div class="selection-toolbar" id="selectionToolbar">
+  <span class="selection-count">
+    0 selected
+  </span>
+
+  <div class="selection-actions">
+    <button class="bulk-delete-btn">
+      <i class="fas fa-trash"></i>
+      Delete
+    </button>
+  </div>
+</div>
 
     <div id="allSessionsList">
       <!-- rows injected here -->
@@ -71,5 +85,19 @@
     <!-- reuse your existing overview card -->
   </section>
 </main>
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <button class="modal-close" id="closeDeleteModal">✕</button>
+    <h3 id="deleteModalTitle">Delete session?</h3>
+    <p id="deleteModalText">
+      This action cannot be undone.
+    </p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="cancelDelete">Cancel</button>
+      <button class="modal-btn confirm" id="confirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

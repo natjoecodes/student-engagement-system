@@ -1107,11 +1107,6 @@ body {
   );
 }
 
-.session-row-header {
-  margin-bottom: 12px; 
-  background: rgba(15, 23, 42, 0.98);
-}
-
 .sessions-header h2 {
   font-size: 1.95rem;
   font-weight: 600;
@@ -1233,6 +1228,8 @@ body {
     inset 0 2px 6px rgba(0,0,0,0.35);
 }
 
+/* --- MAIN CONTENTS OF THE PAGE --- */
+
 .sessions-list-wrapper {
   margin-top: 30px;
   overflow-y: auto;
@@ -1249,7 +1246,6 @@ body {
 
 .session-row {
   display: grid;
-  grid-template-columns: 40px 1.5fr 1fr 100px 40px;
   align-items: center;
   padding: 12px 18px;
   border-radius: var(--radius-md);
@@ -1288,6 +1284,12 @@ body {
 }
 
 .session-row-header {
+  margin-bottom: 12px; 
+  background: rgba(15, 23, 42, 0.98);
+
+  display: grid;
+  align-items: center;
+
   box-shadow:
     0 0 0 1px rgba(167,139,250,0.45),
     0 8px 22px rgba(167,139,250,0.18);
@@ -1297,9 +1299,7 @@ body {
     rgba(15, 23, 42, 0.98),
     rgba(15, 23, 42, 0.92)
   );
-}
 
-.session-row-header {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -1334,38 +1334,6 @@ body {
   border-color: rgba(167,139,250,0.4);
 }
 
-.session-row input[type="checkbox"] {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.04);
-  cursor: pointer;
-  display: grid;
-  place-content: center;
-  opacity: 0.6;
-}
-
-.session-row input[type="checkbox"]::after {
-  content: "";
-  width: 8px;
-  height: 8px;
-  transform: scale(0);
-  transition: transform 0.15s ease;
-  background: var(--accent);
-  border-radius: 2px;
-}
-
-.session-row input[type="checkbox"]:checked::after {
-  transform: scale(1);
-}
-
-.session-row:hover input[type="checkbox"],
-.session-row.selected input[type="checkbox"] {
-  opacity: 1;
-}
-
 .session-row span,
 .session-row div {
   line-height: 1.3;
@@ -1374,4 +1342,232 @@ body {
 .session-row small,
 .session-row .id {
   opacity: 0.55;
+}
+
+/* --- Row Delete Button (hover only) --- */
+
+.row-delete-btn {
+  justify-self: end;
+
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.session-row:hover .row-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.row-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.row-delete-btn i {
+  font-size: 0.85rem;
+}
+
+/* --- Select toggle button --- */
+.select-toggle-btn {
+  justify-self: end;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: var(--text);
+
+  padding: 6px 14px;
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.select-toggle-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Active (Cancel state) */
+.select-toggle-btn.active {
+  background: rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.35);
+  color: #f87171;
+}
+
+.selection-toolbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 18px;
+  margin-bottom: 12px;
+
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(167,139,250,0.35);
+
+  position: sticky;
+  top: 54px; /* BELOW HEADER */
+  z-index: 5;
+}
+
+.session-list.selection-mode .selection-toolbar {
+  display: flex;
+}
+
+.selection-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.bulk-delete-btn {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #f87171;
+
+  padding: 6px 14px;
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bulk-delete-btn:hover {
+  background: rgba(239,68,68,0.25);
+}
+
+/* ===== SINGLE SOURCE OF TRUTH: SESSION GRID ===== */
+
+.session-row,
+.session-row-header {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.9fr)   /* Session */
+    minmax(0, 1.4fr)   /* Start time */
+    80px               /* Duration */
+    96px;              /* Action column */
+
+  align-items: center;
+}
+
+.session-row > :first-child,
+.session-row-header > :first-child {
+  padding-left: 8px;
+}
+
+.row-action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* =========================
+   SaaS Checkbox – FINAL
+   ========================= */
+
+.row-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 18px;
+  height: 18px;
+
+  border-radius: 6px;
+  border: 1.6px solid rgba(255,255,255,0.35);
+  background: rgba(15, 23, 42, 0.85);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+/* hover */
+.row-checkbox:hover {
+  border-color: rgba(167,139,250,0.7);
+  box-shadow: 0 0 0 3px rgba(167,139,250,0.18);
+}
+
+/* checkmark */
+.row-checkbox::after {
+  content: "";
+  width: 6px;
+  height: 10px;
+
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+
+  transform: rotate(45deg) translateY(-2px);
+  opacity: 0;
+
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* checked */
+.row-checkbox:checked {
+  background: linear-gradient(
+    180deg,
+    #a78bfa,
+    #7c3aed
+  );
+  border-color: rgba(167,139,250,0.95);
+
+  box-shadow:
+    0 6px 18px rgba(167,139,250,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.row-checkbox:checked::after {
+  opacity: 1;
+  transform: rotate(45deg) translateY(0);
+}
+
+/* default mode — hidden but layout-safe */
+.row-checkbox {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.85);
+}
+
+/* selection mode — visible */
+.session-list.selection-mode .row-checkbox {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.session-list.selection-mode .row-delete-btn {
+  display: none !important;
+}
+
+.row-checkbox:focus-visible {
+  box-shadow: 0 0 0 3px rgba(167,139,250,0.35);
 }

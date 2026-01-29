@@ -72,6 +72,32 @@ def api_sessions():
     except Exception as e:
         print("Session proxy error:", e)
         return jsonify([]), 500
+    
+@app.route("/api/sessions/delete", methods=["POST"])
+def api_delete_sessions():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    if not data or "ids" not in data:
+        return jsonify({"error": "No session IDs provided"}), 400
+
+    ids = data["ids"]
+
+    try:
+        for sid in ids:
+            res = requests.delete(
+                f"http://127.0.0.1:5001/session/{sid}",
+                timeout=3
+            )
+            if not res.ok:
+                return jsonify({"error": "Delete failed"}), res.status_code
+
+        return jsonify({"deleted": ids}), 200
+
+    except Exception as e:
+        print("Delete proxy error:", e)
+        return jsonify({"error": "Delete failed"}), 500
 
 # logout route
 @app.route('/logout')
