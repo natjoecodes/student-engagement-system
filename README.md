@@ -1,4 +1,4 @@
-# 🎓 Multimodal Student Engagement Analytics System
+# Multimodal Student Engagement Analytics System
 
 ## Overview
 
@@ -7,7 +7,7 @@ The system follows a **microservice architecture**, separating attention inferen
 
 Instead of emotion recognition or heavy machine learning models, the system relies on **explainable geometric facial cues** such as eye openness and head orientation to estimate attention in real time.
 
-Designed by Nathan Jose V
+Designed and developed by Nathan Jose V
 
 ---
 
@@ -154,6 +154,6 @@ The goal of this project is to demonstrate how Edge AI and computer vision can b
 
 License
 
-This project is developed for academic and research purposes.
+Designed and developed by Nathan Jose V. This project is developed for academic and research purposes.
 
 ---
