@@ -1323,6 +1323,7 @@ body {
 .session-row-header span {
   font-weight: 600;
   opacity: 0.75;
+  font-size: 0.8rem;
 }
 
 .session-row-header input {
@@ -1393,7 +1394,7 @@ body {
   padding: 6px 14px;
   border-radius: 999px;
 
-  font-size: 0.75rem;
+  font-size: 0.80rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -1433,7 +1434,7 @@ body {
 }
 
 .selection-count {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
 }
@@ -1455,16 +1456,16 @@ body {
   background: rgba(239,68,68,0.25);
 }
 
-/* ===== SINGLE SOURCE OF TRUTH: SESSION GRID ===== */
+/* ===== SESSION GRID ===== */
 
 .session-row,
 .session-row-header {
   display: grid;
   grid-template-columns:
-    minmax(0, 1.9fr)   /* Session */
-    minmax(0, 1.4fr)   /* Start time */
-    80px               /* Duration */
-    96px;              /* Action column */
+    minmax(0, 1.6fr)   /* Session */
+    minmax(0, 1.7fr)   /* Start time */
+    minmax(0, 0.4fr)         /* Duration */
+    minmax(0, 0.6fr);              /* Action column */
 
   align-items: center;
 }
@@ -1478,6 +1479,30 @@ body {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+}
+
+/* Session title + faculty spacing */
+.session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.session-info .session-title {
+  line-height: 1.25;
+}
+
+.session-info .session-faculty {
+  margin-top: 4px;      /* 👈 THIS is the missing gap */
+  line-height: 1.2;
+}
+
+/* Time on the Rows */
+
+.session-time {
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
 }
 
 /* =========================

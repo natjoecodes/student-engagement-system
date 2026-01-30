@@ -134,13 +134,28 @@ row.dataset.sessionId = s.id;
 
 row.innerHTML = `
   <div class="session-info">
-    <div style="font-weight:600" class="session-title">${s.subject}</div>
-    <div style="font-size:0.75rem; opacity:0.6" class="session-id">ID: ${s.id}</div>
+    <div style="font-weight:600" class="session-title">
+      ${s.subject}
+    </div>
+    <div style="font-size:0.8rem; opacity:0.7" class="session-faculty">
+      ${s.faculty || "—"}
+    </div>
   </div>
 
   <div style="font-size:0.85rem; opacity:0.75" class="session-time">
-    ${start.toLocaleString()}
-  </div>
+  ${start.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  })
+  .replace(" am", " AM")
+  .replace(" pm", " PM")
+}
+</div>
 
   <div style="font-size:0.85rem" class="session-duration">
     ${duration}
@@ -867,10 +882,15 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   if (sessionActive) return;
 
   try {
+    const facultyName = document.getElementById("facultyName")?.textContent || "—";
+
     await fetch("http://127.0.0.1:5001/session/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subject: subjectName.textContent || "Unknown" })
+      body: JSON.stringify({
+        subject: subjectName.textContent || "Unknown",
+        faculty: facultyName
+      })
     });
 
     sessionActive = true;

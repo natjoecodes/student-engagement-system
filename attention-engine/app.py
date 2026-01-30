@@ -40,7 +40,8 @@ def start_session():
     if session_manager.active_session_id:
         return jsonify({"error": "Session already active"}), 400
     subject = request.json.get("subject", "Unknown")
-    sid = session_manager.start_session(subject)
+    faculty = request.json.get("faculty", "—")
+    sid = session_manager.start_session(subject, faculty)
     return jsonify({"session_id": sid})
 
 @app.route("/session/stop", methods=["POST"])
@@ -52,15 +53,20 @@ def stop_session():
 def list_sessions():
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT id, subject, start_time, end_time FROM sessions ORDER BY start_time DESC"
+            """
+            SELECT id, subject, faculty, start_time, end_time
+            FROM sessions
+            ORDER BY start_time DESC
+            """
         ).fetchall()
 
     return jsonify([
         {
             "id": r[0],
             "subject": r[1],
-            "start_time": r[2],
-            "end_time": r[3]
+            "faculty": r[2],
+            "start_time": r[3],
+            "end_time": r[4]
         }
         for r in rows
     ])

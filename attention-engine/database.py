@@ -17,10 +17,18 @@ def init_db():
         start_time TEXT,
         end_time TEXT,
         subject TEXT,
+        faculty TEXT,
         avg_attention REAL,
         peak_attention REAL
     )
     """)
+
+    # --- Safe migration: add faculty column if missing ---
+    try:
+        cur.execute("ALTER TABLE sessions ADD COLUMN faculty TEXT")
+    except sqlite3.OperationalError:
+        # column already exists
+        pass
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS attention_logs (

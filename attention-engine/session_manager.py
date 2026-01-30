@@ -7,7 +7,7 @@ class SessionManager:
         self.active_session_id = None
         self.attention_values = []
 
-    def start_session(self, subject):
+    def start_session(self, subject, faculty):
         if self.active_session_id is not None:
             raise RuntimeError("Session already running")
 
@@ -16,8 +16,16 @@ class SessionManager:
 
         conn = get_connection()
         conn.execute(
-            "INSERT INTO sessions (id, start_time, subject) VALUES (?, ?, ?)",
-            (self.active_session_id, datetime.now().isoformat(), subject)
+            """
+            INSERT INTO sessions (id, start_time, subject, faculty)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                self.active_session_id,
+                datetime.now().isoformat(),
+                subject,
+                faculty
+            )
         )
         conn.commit()
         conn.close()

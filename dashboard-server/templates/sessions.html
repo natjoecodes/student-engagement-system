@@ -7,6 +7,8 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" sizes="96x96"
+      href="{{ url_for('static', filename='assets/favicon.png') }}">
 
   <!-- SAME GLOBAL STYLES -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -60,14 +62,16 @@
   <span>Session</span>
   <span>Start Time</span>
   <span>Duration</span>
+  <div class="row-action">
   <button id="selectToggle" class="select-toggle-btn">
     Select
   </button>
 </div>
+</div>
 
 <div class="selection-toolbar" id="selectionToolbar">
   <span class="selection-count">
-    0 selected
+    0 Sessions Selected
   </span>
 
   <div class="selection-actions">
