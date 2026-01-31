@@ -184,3 +184,45 @@
     padding-right: calc(var(--grid-gap) + 280px);
   }
 }
+
+@media (orientation: landscape) and (max-width: 1024px) {
+
+  .right-panel {
+    grid-row: auto;
+  }
+  
+  .right-panel .card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .right-panel .card img {
+    align-self: flex-end;
+    width: 36px;
+    height: 36px;
+  }
+
+  .card-info {
+    width: 100%;
+  }
+
+  .right-panel .card .card-info {
+    padding-right: 4px;  /* prevents edge kissing */
+    box-sizing: border-box;
+  }
+}
+
+/* Reduce heading → value spacing inside right-panel cards (small screens only) */
+@media (orientation: landscape) and (max-height: 900px) {
+
+  .right-panel .card .card-info {
+    gap: 2px;          /* was 4px */
+  }
+
+  .right-panel .card .card-info p {
+    margin-top: 0;     /* kills extra vertical gap */
+  }
+
+}

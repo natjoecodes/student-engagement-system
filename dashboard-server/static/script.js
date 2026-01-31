@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let timeLabels = [];
   let heatmapData = [];
 
+  let sensorInterval = null;
+
   // ===== Live window config =====
   const WINDOW_SECONDS = 90;   // 1.5 minute
   const ALERT_SECONDS = 120;    // 2 minutes
@@ -42,6 +44,39 @@ document.addEventListener("DOMContentLoaded", () => {
   "timeBelow",
   "pattern"
 ];
+
+const SENSOR_RULES = {
+  co2: {
+    optimal: [600, 800],
+    warning: [800, 1000],
+    danger: [1000, Infinity],
+    unit: "ppm"
+  },
+  temperature: {
+    optimal: [22, 28],
+    warning: [28, 32],
+    danger: [32, Infinity],
+    unit: "°C"
+  },
+  humidity: {
+    optimal: [40, 60],
+    warning: [60, 70],
+    danger: [70, Infinity],
+    unit: "%"
+  },
+  noise: {
+    optimal: [0, 35],
+    warning: [35, 50],
+    danger: [50, Infinity],
+    unit: "dB"
+  },
+  light: {
+    optimal: [300, 500],
+    warning: [200, 300],
+    danger: [0, 200],
+    unit: "lux"
+  }
+};
 
 let currentInsightIndex = 0;
 let forcedInsight = null;
@@ -201,24 +236,161 @@ list.appendChild(row);
     }
   }
 
+  function evaluateSensor(value, rule) {
+  if (value >= rule.optimal[0] && value <= rule.optimal[1]) {
+    return "optimal";
+  }
+  if (value >= rule.warning[0] && value <= rule.warning[1]) {
+    return "warning";
+  }
+  return "danger";
+}
+
+function updateSensorCard({
+  card,
+  valueEl,
+  fillEl,
+  statusEl,
+  value,
+  rule
+}) {
+  const state = evaluateSensor(value, rule);
+
+  valueEl.innerHTML = `${value}<span>${rule.unit}</span>`;
+
+  let percent = 60;
+  if (state === "optimal") percent = 70;
+  if (state === "warning") percent = 45;
+  if (state === "danger") percent = 90;
+
+  fillEl.style.width = `${percent}%`;
+
+  card.dataset.state = state;
+
+  statusEl.className =
+    "sensor-status " +
+    (state === "optimal" ? "ok" : state);
+
+  statusEl.textContent =
+    state === "optimal"
+      ? "Normal"
+      : state === "warning"
+      ? "Warning"
+      : "Critical";
+
+  return state;
+}
+
   // Fetch Sensor Data from Flask Backend
   async function fetchSensorData() {
+    const alertStates = [];
+
     try {
-      const response = await fetch('http://172.20.10.2:5000/sensor-data');
+      const response = await fetch('/sensor-data');
+      if (!sessionActive || sessionPaused) return;
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();
 
-      // Update dashboard cards
-      document.getElementById('tempValue').innerText = `${data.temperature.toFixed(1)} °C`;
-      document.getElementById('humValue').innerText = `${data.humidity.toFixed(1)} %`;
-      document.getElementById('noiseValue').innerText = `${data.noise}`;
-      document.getElementById('lightValue').innerText = `${data.light}`;
-      document.getElementById('co2Value').innerText = `${data.co2}`;
+    alertStates.push(
+      updateSensorCard({
+        card: document.getElementById("co2Value").closest(".card"),
+        valueEl: document.getElementById("co2Value"),
+        fillEl: document.getElementById("co2Value")
+          .closest(".card")
+          .querySelector(".sensor-fill"),
+        statusEl: document.getElementById("co2Value")
+          .closest(".card")
+          .querySelector(".sensor-status"),
+        value: data.co2,
+        rule: SENSOR_RULES.co2
+      })
+    );
+
+    alertStates.push(
+      updateSensorCard({
+        card: document.getElementById("tempValue").closest(".card"),
+        valueEl: document.getElementById("tempValue"),
+        fillEl: document.getElementById("tempValue")
+          .closest(".card")
+          .querySelector(".sensor-fill"),
+        statusEl: document.getElementById("tempValue")
+          .closest(".card")
+          .querySelector(".sensor-status"),
+        value: data.temperature.toFixed(1),
+        rule: SENSOR_RULES.temperature
+      })
+    );
+
+    alertStates.push(
+      updateSensorCard({
+        card: document.getElementById("humValue").closest(".card"),
+        valueEl: document.getElementById("humValue"),
+        fillEl: document.getElementById("humValue")
+          .closest(".card")
+          .querySelector(".sensor-fill"),
+        statusEl: document.getElementById("humValue")
+          .closest(".card")
+          .querySelector(".sensor-status"),
+        value: data.humidity.toFixed(1),
+        rule: SENSOR_RULES.humidity
+      })
+    );
+
+    alertStates.push(
+      updateSensorCard({
+        card: document.getElementById("noiseValue").closest(".card"),
+        valueEl: document.getElementById("noiseValue"),
+        fillEl: document.getElementById("noiseValue")
+          .closest(".card")
+          .querySelector(".sensor-fill"),
+        statusEl: document.getElementById("noiseValue")
+          .closest(".card")
+          .querySelector(".sensor-status"),
+        value: data.noise,
+        rule: SENSOR_RULES.noise
+      })
+    );
+
+    alertStates.push(
+      updateSensorCard({
+        card: document.getElementById("lightValue").closest(".card"),
+        valueEl: document.getElementById("lightValue"),
+        fillEl: document.getElementById("lightValue")
+          .closest(".card")
+          .querySelector(".sensor-fill"),
+        statusEl: document.getElementById("lightValue")
+          .closest(".card")
+          .querySelector(".sensor-status"),
+        value: data.light,
+        rule: SENSOR_RULES.light
+      })
+    );
+
     } catch (err) {
       console.error("Error fetching sensor data:", err);
     }
+    updateGlobalAlert(alertStates);
   }
+
+  function startSensorPolling() {
+  if (sensorInterval) return;
+
+  fetchSensorData(); // immediate first hit
+  sensorInterval = setInterval(fetchSensorData, 3000);
+}
+
+function stopSensorPolling() {
+  clearInterval(sensorInterval);
+  sensorInterval = null;
+
+  // Reset sensor UI
+  document.getElementById("tempValue").innerHTML = "—<span>°C</span>";
+  document.getElementById("humValue").innerHTML = "—<span>%</span>";
+  document.getElementById("noiseValue").innerHTML = "—<span>dB</span>";
+  document.getElementById("lightValue").innerHTML = "—<span>lux</span>";
+  document.getElementById("co2Value").innerHTML = "—<span>ppm</span>";
+}
 
   /* ==========================================================================
      3. CHARTING & HEATMAP LOGIC
@@ -573,12 +745,34 @@ heatmapData.length = 0;
   }
 }
 
-/* function updateButtonStates() {
-  startBtn.disabled = sessionActive;
-  pauseBtn.disabled = !sessionActive;
-  stopBtn.disabled = !sessionActive;
+function updateGlobalAlert(states) {
+  const alertBar = document.querySelector(".scoped-alert");
+  if (!alertBar) return;
+
+  if (states.includes("danger")) {
+    alertBar.style.opacity = "1";
+    alertBar.querySelector(".alert-emphasis").textContent =
+      "Critical environment";
+    alertBar.querySelector(".alert-text").textContent =
+      "Immediate attention required";
+    return;
+  }
+
+  if (states.includes("warning")) {
+    alertBar.style.opacity = "1";
+    alertBar.querySelector(".alert-emphasis").textContent =
+      "Suboptimal conditions";
+    alertBar.querySelector(".alert-text").textContent =
+      "Environmental stress detected";
+    return;
+  }
+
+  alertBar.style.opacity = "0.6";
+  alertBar.querySelector(".alert-emphasis").textContent =
+    "Environment stable";
+  alertBar.querySelector(".alert-text").textContent =
+    "All parameters within range";
 }
-*/
 
   /* ==========================================================================
      5. UI UPDATES (TIME & NAVBAR)
@@ -842,10 +1036,6 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     setInterval(updateNavbarFromTimetable, 60000);
   });
 
-  // --- Sensor Logic ---
-  fetchSensorData();
-  setInterval(fetchSensorData, 3000);
-
   // --- Modal Logic ---
   const logoutBtn = document.getElementById("logoutBtn");
   const logoutModal = document.getElementById("logoutModal");
@@ -897,6 +1087,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     sessionPaused = false;
     updateSessionStatus("active");
     startChartPlotting();
+    startSensorPolling();
 
     // ===== START SESSION TIMER =====
     sessionTimerEl.hidden = false;
@@ -923,6 +1114,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   if (!sessionPaused) {
     pauseChartPlotting();
     sessionPaused = true;
+    stopSensorPolling();
     pauseBtn.textContent = "Resume";
     updateSessionStatus("paused");
     document.querySelector(".chart-wrapper")?.classList.add("paused");
@@ -932,6 +1124,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   } else {
     resumeChartPlotting();
     sessionPaused = false;
+    startSensorPolling();
     pauseBtn.textContent = "Pause";
     updateSessionStatus("active");
     document.querySelector(".chart-wrapper")?.classList.remove("paused");
@@ -942,6 +1135,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     stopBtn.addEventListener("click", () => {
       if (!sessionActive) return;
       stopChartPlotting();
+      stopSensorPolling();
       document.querySelector(".chart-wrapper")?.classList.remove("paused");
       pauseBtn.textContent = "Pause";
     });

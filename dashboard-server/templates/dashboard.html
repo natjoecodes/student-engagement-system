@@ -106,44 +106,90 @@
         </div>
 
         <div class="right-panel">
-            <div class="card">
+
+          <div class="card">
                 <div class="card-info">
-                    <h3>Temperature</h3>
-                    <p id="tempValue">-- °C</p>
+                    <div class="sensor-header">
+                      <h3>CO₂ Level</h3>
+                      <span class="sensor-status ok">Normal</span>
+                    </div>
+
+                    <p class="sensor-value" id="co2Value">—<span>ppm</span></p>
+                    <div class="sensor-bar">
+                      <div class="sensor-fill" style="width:62%"></div>
+                    </div>
+
+                    <small class="sensor-meta">Optimal: 600–800 ppm</small>
                 </div>
-                <img src="{{ url_for('static', filename='assets/temperature.png') }}" alt="Temperature Icon" class="card-icon" />
-    </div>
+                <img src="{{ url_for('static', filename='assets/co2.png') }}" alt="CO₂ Icon" class="card-icon" />
+            </div>
 
             <div class="card">
                 <div class="card-info">
-                    <h3>Humidity</h3>
-                    <p id="humValue">-- %</p>
+                  <div class="sensor-header">
+                    <h3>Temperature</h3>
+                    <span class="sensor-status ok">Normal</span>
+                  </div>
+                  <p class="sensor-value" id="tempValue">—<span>°C</span></p>
+                  <div class="sensor-bar">
+                    <div class="sensor-fill" style="width:62%"></div>
+                  </div>
+                  <small class="sensor-meta">Optimal: 22–28°C</small>
+                </div>
+                <img src="{{ url_for('static', filename='assets/temperature.png') }}" alt="Temperature Icon" class="card-icon" />
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <div class="sensor-header">
+                      <h3>Humidity</h3>
+                      <span class="sensor-status ok">Normal</span>
+                    </div>
+
+                    <p class="sensor-value" id="humValue">—<span>%</span></p>
+
+                    <div class="sensor-bar">
+                      <div class="sensor-fill" style="width:62%"></div>
+                    </div>
+
+                    <small class="sensor-meta">Optimal: 40–60%</small>
                 </div>
                 <img src="{{ url_for('static', filename='assets/humidity.png') }}" alt="Humidity Icon" class="card-icon" />
     </div>
 
             <div class="card">
                 <div class="card-info">
-                    <h3>Ambient Sound</h3>
-                    <p id="noiseValue">--</p>
+                    <div class="sensor-header">
+                      <h3>Ambient Sound</h3>
+                      <span class="sensor-status ok">Normal</span>
+                    </div>
+
+                    <p class="sensor-value" id="noiseValue">—<span>dB</span></p>
+
+                    <div class="sensor-bar">
+                      <div class="sensor-fill" style="width:62%"></div>
+                    </div>
+
+                    <small class="sensor-meta">Optimal: &lt;35 dB</small>
                 </div>
                  <img src="{{ url_for('static', filename='assets/sound.png') }}" alt="Sound Icon" class="card-icon" />
     </div>
 
             <div class="card">
                 <div class="card-info">
-                    <h3>Ambient Light</h3>
-                    <p id="lightValue">--</p>
+                    <div class="sensor-header">
+                      <h3>Ambient Light</h3>
+                      <span class="sensor-status ok">Normal</span>
+                    </div>
+
+                    <p class="sensor-value" id="lightValue">—<span>lux</span></p>
+                    <div class="sensor-bar">
+                      <div class="sensor-fill" style="width:62%"></div>
+                    </div>
+
+                    <small class="sensor-meta">Optimal: 300–500 lux</small>
                 </div>
                 <img src="{{ url_for('static', filename='assets/light.png') }}" alt="Light Icon" class="card-icon" />
-    </div>
-
-            <div class="card">
-                <div class="card-info">
-                    <h3>CO₂ Level</h3>
-                    <p id="co2Value">--</p>
-                </div>
-                <img src="{{ url_for('static', filename='assets/co2.png') }}" alt="CO₂ Icon" class="card-icon" />
     </div>
         </div>
     </main>
