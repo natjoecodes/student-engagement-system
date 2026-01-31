@@ -5,6 +5,9 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
+  const isDashboard = document.querySelector(".dashboard-container");
+  const isSessionsPage = document.querySelector(".sessions-page");
+
   /* ==========================================================================
      1. GLOBAL STATE & VARIABLES
      ========================================================================== */
@@ -236,6 +239,32 @@ list.appendChild(row);
     }
   }
 
+    // ===== SENSOR HELPERS =====
+
+  function computeSensorPercent(value, rule) {
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+    // OPTIMAL → 30–70%
+    if (value >= rule.optimal[0] && value <= rule.optimal[1]) {
+      const [min, max] = rule.optimal;
+      const t = (value - min) / (max - min);
+      return clamp(30 + t * 40, 30, 70);
+    }
+
+    // WARNING → 70–90%
+    if (value >= rule.warning[0] && value <= rule.warning[1]) {
+      const [min, max] = rule.warning;
+      const t = (value - min) / (max - min);
+      return clamp(70 + t * 20, 70, 90);
+    }
+
+    // DANGER → 90–100%
+    const dangerMin = rule.danger[0];
+    const span = rule.warning[1] - rule.warning[0] || 1;
+    const t = (value - dangerMin) / span;
+    return clamp(90 + t * 10, 90, 100);
+  }
+
   function evaluateSensor(value, rule) {
   if (value >= rule.optimal[0] && value <= rule.optimal[1]) {
     return "optimal";
@@ -258,11 +287,7 @@ function updateSensorCard({
 
   valueEl.innerHTML = `${value}<span>${rule.unit}</span>`;
 
-  let percent = 60;
-  if (state === "optimal") percent = 70;
-  if (state === "warning") percent = 45;
-  if (state === "danger") percent = 90;
-
+  const percent = computeSensorPercent(Number(value), rule);
   fillEl.style.width = `${percent}%`;
 
   card.dataset.state = state;
@@ -383,6 +408,23 @@ function updateSensorCard({
 function stopSensorPolling() {
   clearInterval(sensorInterval);
   sensorInterval = null;
+
+  if (!document.querySelector(".right-panel")) return;
+
+  document.querySelectorAll(".right-panel .card").forEach(card => {
+    const value = card.querySelector(".sensor-value");
+    const fill = card.querySelector(".sensor-fill");
+    const status = card.querySelector(".sensor-status");
+
+    if (value) value.innerHTML = "—<span></span>";
+    if (fill) fill.style.width = "0%";   // 🔴 THIS WAS MISSING
+    if (status) {
+      status.className = "sensor-status";
+      status.textContent = "—";
+    }
+
+    delete card.dataset.state;
+  });
 
   // Reset sensor UI
   document.getElementById("tempValue").innerHTML = "—<span>°C</span>";
@@ -540,7 +582,12 @@ const maxCells = columns * rows;
     const cell = document.createElement("div");
     cell.className = "heatmap-cell";
 
-    if (val < 40) cell.style.background = "#1f2933";
+    if (val === 0) {
+      cell.style.background = "rgba(88, 80, 150, 0.35)";
+    }
+    else if (val < 40) {
+      cell.style.background = "#1f2933";
+    }
     else if (val < 60) cell.style.background = "rgba(167,139,250,0.35)";
     else if (val < 80) cell.style.background = "rgba(167,139,250,0.65)";
     else cell.style.background = "#a78bfa";
@@ -835,9 +882,13 @@ function updateGlobalAlert(states) {
      ========================================================================== */
 
   // --- Initialize Components ---
-  initAttentionChart();
-  renderHeatmap([]);
-  renderInsight("health");
+  if (isDashboard) {
+    initAttentionChart();
+    renderHeatmap([]);
+    renderInsight("health");
+    stopSensorPolling();
+  }
+
   updateDateTime();
   setInterval(updateDateTime, 1000);
 
@@ -1115,6 +1166,9 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     pauseChartPlotting();
     sessionPaused = true;
     stopSensorPolling();
+    document.querySelectorAll(".sensor-fill").forEach(fill => {
+    fill.style.opacity = "0.5"; // visual freeze
+  });
     pauseBtn.textContent = "Resume";
     updateSessionStatus("paused");
     document.querySelector(".chart-wrapper")?.classList.add("paused");
@@ -1136,6 +1190,9 @@ confirmDeleteBtn?.addEventListener("click", async () => {
       if (!sessionActive) return;
       stopChartPlotting();
       stopSensorPolling();
+      document.querySelectorAll(".sensor-fill").forEach(fill => {
+  fill.style.opacity = "1";
+});
       document.querySelector(".chart-wrapper")?.classList.remove("paused");
       pauseBtn.textContent = "Pause";
     });

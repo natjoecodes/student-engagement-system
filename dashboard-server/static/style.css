@@ -112,17 +112,28 @@ body {
    ========================================================================== */
 
   .sensor-header {
-  display: flex;
+  display: block;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
+.sensor-header h3 {
+  padding-right: 90px; /* reserve visual space for pill */
+}
+
 .sensor-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  min-width: 72px;
+  text-align: center;
   font-size: 0.7rem;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .sensor-status.ok {
@@ -164,6 +175,8 @@ body {
   background: rgba(255,255,255,0.1);
   border-radius: 999px;
   overflow: hidden;
+  width: 160px;     
+  max-width: 160px;
 }
 
 .sensor-fill {
@@ -177,17 +190,37 @@ body {
 }
 
 .card-icon {
-  opacity: 0.8;
-  filter: grayscale(20%);
+  position: absolute;
+  top: 48px; 
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  pointer-events: none;
 }
 
 .card[data-state="optimal"] .card-icon {
-  filter: drop-shadow(0 0 6px rgba(34,197,94,0.25));
+  filter: drop-shadow(0 0 10px rgba(34,197,94,0.45));
+}
+
+.card[data-state="warning"] .card-icon {
+  filter: drop-shadow(0 0 10px rgba(245,158,11,0.45));
+}
+
+.card[data-state="danger"] .card-icon {
+  filter: drop-shadow(0 0 12px rgba(239,68,68,0.55));
 }
 
 .sensor-value span {
   font-size: 0.9em;
   margin-left: 2px;
+}
+
+.card-icon {
+  margin-bottom: -4px;
+}
+
+.sensor-status {
+  margin-top: -4px;
 }
 
 /* ==========================================================================
@@ -410,7 +443,6 @@ body {
   gap: 12px;
   white-space: nowrap;   /* 🔒 hard lock */
   flex-shrink: 0;        /* 🔒 prevents compression */
-  transform: translateX(-10px);
 }
 
 .logo-text {
@@ -470,18 +502,11 @@ body {
   box-shadow: 0 6px 22px rgba(239, 68, 68, 0.6);
 }
 
-.logout-wrap {
-  transform: translateX(14px);   /* optical alignment */
-}
-
-.logout-btn:hover {
-  transform: translateY(-2px);
-}
-
 .card-info {
   display: flex;
   flex-direction: column;
   gap: 4px;           /* 🔑 controls ALL vertical rhythm */
+  padding-right: 50px;
 }
 
 
@@ -535,6 +560,7 @@ body {
   align-items: center;
   justify-content: space-between;
   min-height: 0;
+  position: relative;
 }
 
 .card-info h3 {
