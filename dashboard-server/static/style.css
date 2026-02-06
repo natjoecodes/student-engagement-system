@@ -29,6 +29,15 @@
   --radius-lg: 16px;   /* ALL primary cards */
   --radius-md: 12px;   /* Inner cards / panels */
   --radius-sm: 4px;    /* Micro elements */
+
+  /* Session Health semantic colors */
+  --health-good: #34d399;     /* green */
+  --health-warn: #fbbf24;     /* yellow */
+  --health-risk: #f87171;     /* red */
+
+  --health-glow-good: rgba(52, 211, 153, 0.35);
+  --health-glow-warn: rgba(251, 191, 36, 0.35);
+  --health-glow-risk: rgba(248, 113, 113, 0.4);
 }
 
 * {
@@ -69,9 +78,9 @@ body {
   grid-row: 1;
   display: grid;
   grid-template-rows:
-  60px        /* History */
-  auto        /* Heatmap – content-sized */
-  1fr;        /* Session Health takes the rest */
+      60px        /* History */
+      auto        /* Heatmap – content-sized */
+      1fr;        /* Session Health takes the rest */
   grid-auto-rows: minmax(0, auto);
   align-content: start;
   gap: var(--card-gap);
@@ -191,7 +200,7 @@ body {
 
 .card-icon {
   position: absolute;
-  top: 48px; 
+  top: 46px;
   right: 16px;
   width: 42px;
   height: 42px;
@@ -532,12 +541,13 @@ body {
 /* Cards that are actually clickable / actionable */
 .card.interactive {
   cursor: pointer;
+  position: relative;
 }
 
 .card.interactive:hover {
   transform: translateY(-4px);
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .card h2 {
@@ -752,16 +762,59 @@ body {
    ========================================================================== */
 
 .session-insight-card {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 10px;
+  cursor: default;
+  padding: 16px 20px;        
   min-height: 0;
   overflow: hidden;
   cursor: pointer;
+}
+
+.session-insight-card.interactive {
+  cursor: pointer;
+}
+
+.session-insight-card h3 {
+  margin-bottom: 6px;
+}
+
+.insight-body {
+  flex: 1;                     /* 👈 THIS is key */
+  display: flex;
+  align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 14px;
+}
+
+.insight-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.insight-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.insight-footer span b {
+  color: var(--text);
+}
+
+.insight-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.insight-value.muted {
+  font-size: 1.6rem;
+  opacity: 0.7;
 }
 
 .card-title {
@@ -1130,16 +1183,15 @@ body {
     border-color 0.45s cubic-bezier(.22,.61,.36,1);
 
   transition: all 0.45s cubic-bezier(.22,.61,.36,1);
+  will-change: transform;
 }
 
 .history-card:hover {
   background: rgba(255,255,255,0.08);
-
-  border-color: rgba(255,255,255,0.12);
-
+  border-color: rgba(255,255,255,0.16);
   box-shadow:
-    0 14px 34px rgba(0,0,0,0.38),
-    inset 0 1px 0 rgba(255,255,255,0.12);
+    0 10px 24px rgba(0,0,0,0.32);
+  transform: translateY(-2px);
 }
 
 .history-header {
@@ -1178,6 +1230,20 @@ body {
 .history-card:hover .history-expand {
   opacity: 1;
   transform: translateX(6px);
+}
+
+.history-card i {
+  opacity: 0.5;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+  transition-delay: 0s;
+}
+
+.history-card:hover i {
+  opacity: 1;
+  transform: translateX(6px);
+  transition-delay: 0.05s; /* subtle stagger */
 }
 
 /* =========================
@@ -1529,8 +1595,8 @@ body {
 
 .selection-toolbar {
   display: none;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
 
   padding: 10px 18px;
   margin-bottom: 12px;
@@ -1542,18 +1608,51 @@ body {
   border: 1px solid rgba(167,139,250,0.35);
 
   position: sticky;
-  top: 54px; /* BELOW HEADER */
+  top: 54px;
   z-index: 5;
+
+  /* visibility control */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .session-list.selection-mode .selection-toolbar {
-  display: flex;
+  display: grid;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .selection-count {
+  justify-self: center;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
+}
+
+.select-all-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: var(--text);
+
+  padding: 6px 14px;
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.select-all-btn:hover {
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-1px);
 }
 
 .bulk-delete-btn {
@@ -1783,3 +1882,4 @@ justify-content: center; /* keeps title centered */
   position: absolute;
   left: 0;
 }
+

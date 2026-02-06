@@ -67,23 +67,22 @@
     </div>
   </div>
 
-  <div class="card session-insight-card" id="sessionInsightCard">
+<div class="card session-insight-card" id="sessionInsightCard">
   <h3 id="card-title">Session Health</h3>
 
-  <!-- Primary verdict -->
-<div class="insight-main">
-  <span class="insight-value muted" id="insightValue">No data</span>
-  <span class="insight-label" id="insightLabel">Session inactive</span>
-</div>
+  <div class="insight-body">
+    <div class="insight-main">
+      <span class="insight-value muted" id="insightValue">No data</span>
+      <span class="insight-label" id="insightLabel">Session inactive</span>
+    </div>
+  </div>
 
-  <!-- Breakdown -->
-  <div class="insight-breakdown" id="insightBreakdown">
+  <div class="insight-footer">
     <span id="insightAvg">Avg: —%</span>
     <span id="insightStability">Stability: —</span>
     <span id="insightRisk">Risk: —</span>
   </div>
 
-  <!-- Context line -->
   <div class="insight-sub" id="insightSub"></div>
 </div>
         </div>
@@ -195,9 +194,9 @@
     </main>
 
     <div class="bottom-controls">
-        <button id="startBtn">Start</button>
-        <button id="pauseBtn">Pause</button>
-        <button id="stopBtn">Stop</button>
+        <button id="startBtn"><span>Start</span></button>
+        <button id="pauseBtn"><span>Pause</span></button>
+        <button id="stopBtn"><span>Stop</span></button>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

@@ -85,6 +85,14 @@ let currentInsightIndex = 0;
 let forcedInsight = null;
 let forceTimeout = null;
 
+const INSIGHT_STATE = {
+  INACTIVE: "inactive",
+  COLLECTING: "collecting",
+  ACTIVE: "active"
+};
+
+let insightState = INSIGHT_STATE.INACTIVE;
+
 const insightCard = document.getElementById("sessionInsightCard");
 const insightTitle = document.getElementById("card-title");
 const insightValue = document.getElementById("insightValue");
@@ -603,6 +611,32 @@ const maxCells = columns * rows;
      3.1. SESSION INSIGHTS LOGIC
      ========================================================================== */
 
+function renderInsightInactive() {
+  insightTitle.textContent = "Session Health";
+  insightValue.textContent = "No data";
+  insightValue.classList.add("muted");
+
+  insightLabel.textContent = "Session inactive";
+
+  insightAvg.textContent = "Avg: —%";
+  insightStability.textContent = "Stability: —";
+  insightRisk.textContent = "Risk: —";
+
+  insightSub.textContent = "";
+}
+
+function renderInsightCollecting() {
+  insightTitle.textContent = "Session Health";
+  insightValue.textContent = "Collecting…";
+  insightValue.classList.add("muted");
+
+  insightLabel.textContent = "Gathering engagement data";
+  insightSub.textContent = "Needs ~30 seconds of live data";
+
+  insightAvg.textContent = "Avg: —%";
+  insightStability.textContent = "Stability: —";
+  insightRisk.textContent = "Risk: —";
+}
 
 function computeSessionHealth() {
   if (!attentionDataAll.length) return null;
@@ -628,6 +662,23 @@ function computeTimeBelowThreshold(threshold = 40) {
   return recent.filter(v => v < threshold).length * SAMPLE_INTERVAL;
 }
 
+function updateInsightState() {
+  if (!sessionActive) {
+    insightState = INSIGHT_STATE.INACTIVE;
+    renderInsightInactive();
+    return;
+  }
+
+  if (attentionDataAll.length < 6) { // < 30 seconds of data
+    insightState = INSIGHT_STATE.COLLECTING;
+    renderInsightCollecting();
+    return;
+  }
+
+  insightState = INSIGHT_STATE.ACTIVE;
+  renderInsight("health");
+}
+
 function renderInsight(type) {
   if (type === "health") {
   const data = computeSessionHealth();
@@ -642,6 +693,12 @@ function renderInsight(type) {
   // Primary
   insightTitle.textContent = "Session Health";
   insightValue.textContent = `${health} / 100`;
+
+  insightCard.classList.remove("health-good","health-warn","health-risk");
+
+if (health >= 75) insightCard.classList.add("health-good");
+else if (health >= 60) insightCard.classList.add("health-warn");
+else insightCard.classList.add("health-risk");
 
   // Label
   let label = "Stable Engagement";
@@ -708,6 +765,7 @@ if (value === null) return; // skip this tick
 
     // 1️⃣ Full-session memory
 attentionDataAll.push(value);
+updateInsightState();
 
 // 2️⃣ Live window (chart + alert)
 attentionDataWindow.push(value);
@@ -772,6 +830,7 @@ if (sessionTimerEl) {
   sessionPaused = false;
   pauseBtn.textContent = "Pause";
   updateSessionStatus("inactive");
+  updateInsightState();
 
   // 🔥 HARD RESET UI STATE
   attentionDataAll.length = 0;
@@ -885,7 +944,7 @@ function updateGlobalAlert(states) {
   if (isDashboard) {
     initAttentionChart();
     renderHeatmap([]);
-    renderInsight("health");
+    updateInsightState();
     stopSensorPolling();
   }
 
@@ -920,8 +979,6 @@ if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
     sessionList.classList.toggle("selection-mode", selectionMode);
     selectToggleBtn.classList.toggle("active", selectionMode);
     selectToggleBtn.textContent = selectionMode ? "Cancel" : "Select";
-
-    selectionToolbar.style.display = selectionMode ? "flex" : "none";
 
     if (!selectionMode) clearSelections();
   });
@@ -959,12 +1016,11 @@ if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && selectionMode) {
+    if (e.key === "Escape" && selectionMode && !deleteModalOpen) {
       selectionMode = false;
       sessionList.classList.remove("selection-mode");
       selectToggleBtn.classList.remove("active");
       selectToggleBtn.textContent = "Select";
-      selectionToolbar.style.display = "none";
       clearSelections();
     }
   });
@@ -982,9 +1038,12 @@ const closeDeleteModal = document.getElementById("closeDeleteModal");
 let deleteQueue = [];
 let deleteRows = [];
 
+let deleteModalOpen = false;
+
 function openDeleteModal({ ids, rows }) {
   deleteQueue = ids;
   deleteRows = rows;
+  deleteModalOpen = true;
 
   const title = document.getElementById("deleteModalTitle");
   const text = document.getElementById("deleteModalText");
@@ -1004,6 +1063,7 @@ function closeDeleteModalFn() {
   deleteModal.classList.remove("active");
   deleteQueue = [];
   deleteRows = [];
+  deleteModalOpen = false;
 }
 
 cancelDeleteBtn?.addEventListener("click", closeDeleteModalFn);
@@ -1137,6 +1197,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     sessionActive = true;
     sessionPaused = false;
     updateSessionStatus("active");
+    updateInsightState();
     startChartPlotting();
     startSensorPolling();
 
@@ -1200,9 +1261,10 @@ confirmDeleteBtn?.addEventListener("click", async () => {
 
 // --- Insight Card Listener ---
 
-  if (insightCard) {
+if (insightCard) {
   insightCard.addEventListener("click", () => {
     if (forcedInsight) return;
+    if (insightState !== INSIGHT_STATE.ACTIVE) return;
 
     currentInsightIndex =
       (currentInsightIndex + 1) % INSIGHTS.length;
