@@ -6,10 +6,10 @@ SERVER_URL = "http://127.0.0.1:5000/update-sensor"
 
 def generate_sensor_data():
     return {
-        "temperature": round(random.uniform(24.0, 30.0), 1),   # °C
+        "temperature": round(random.uniform(24.0, 36.0), 1),   # °C
         "humidity": round(random.uniform(40.0, 70.0), 1),      # %
         "light": random.randint(200, 600),                     # lux
-        "noise": random.randint(25, 55),                       # dB
+        "noise": random.randint(30, 80),                       # dB
         "co2": random.randint(500, 1200)                       # ppm
     }
 
@@ -20,8 +20,8 @@ while True:
 
     try:
         res = requests.post(SERVER_URL, json=data, timeout=2)
-        print("📡 Sent:", data)
+        print("Sent:", data)
     except Exception as e:
-        print("❌ Failed to send data:", e)
+        print("Failed to send data:", e)
 
-    time.sleep(3)
+    time.sleep(1)
