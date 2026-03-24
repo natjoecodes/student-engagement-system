@@ -5,14 +5,6 @@ from config import (
     PENALTY_LOOKING_AWAY
 )
 
-def get_sensor_data():
-    try:
-        res = requests.get("http://127.0.0.1:5000/sensor-data", timeout=1)
-        return res.json()
-    except Exception as e:
-        print("Sensor fetch error:", e)
-        return None
-
 def clamp(value, min_val=0.0, max_val=1.0):
     return max(min_val, min(max_val, value))
 
@@ -24,15 +16,24 @@ def compute_camera_score(features):
     if features is None:
         return 0.0
 
+    eye = features.get("eye_open", 1.0)
+    yaw = abs(features.get("yaw", 0.0))
+    if eye < EYE_CLOSED_THRESH * 0.4 or yaw > 40:
+        return 0.0
+    
     score = 100
 
     # Eyes closed / drowsy
-    if features["eye_open"] < EYE_CLOSED_THRESH:
-        score -= PENALTY_EYES_CLOSED
+    eye = features.get("eye_open", 1.0)
+
+    if eye < EYE_CLOSED_THRESH:
+        eye_ratio = 1 - (eye / EYE_CLOSED_THRESH)
+        score -= eye_ratio * PENALTY_EYES_CLOSED
 
     # Looking away
-    if abs(features["yaw"]) > YAW_AWAY_THRESH:
-        score -= PENALTY_LOOKING_AWAY
+    yaw = abs(features.get("yaw", 0.0))
+    yaw_ratio = min(yaw / 45, 1.0)  # normalize
+    score -= yaw_ratio * PENALTY_LOOKING_AWAY
 
     score = max(0, min(100, score))
 
@@ -52,6 +53,7 @@ def compute_sensor_score(sensor_data):
     noise = sensor_data.get("noise", 40)
     co2 = sensor_data.get("co2", 600)
     light = sensor_data.get("light", 400)
+    humidity = sensor_data.get("humidity", 50)
 
     score = 1.0
 
@@ -73,6 +75,10 @@ def compute_sensor_score(sensor_data):
     if light < 300:
         score -= min((300 - light) * 0.002, 0.3)
 
+    # --- HUMIDITY (too high → sleepy) ---
+    if humidity > 70:
+        score -= 0.1
+
     return clamp(score)
 
 
@@ -86,14 +92,17 @@ def compute_attention(features, sensor_data=None, prev_score=None):
     """
 
     camera_score = compute_camera_score(features)
+    if camera_score > 0:
+        camera_score = max(camera_score, 0.1)
     sensor_score = compute_sensor_score(sensor_data)
 
-    fused_score = camera_score * sensor_score
+    fused_score = (camera_score ** 0.7) * (sensor_score ** 0.3)
+    fused_score = max(fused_score, 0.1)
 
     #SMOOTHING 
     if prev_score is not None:
         prev_norm = prev_score / 100.0
-        fused_score = (0.8 * prev_norm) + (0.2 * fused_score)
+        fused_score = (0.85 * prev_norm) + (0.15 * fused_score)
 
     # Convert back to 0–100
     final_score = int(clamp(fused_score) * 100)

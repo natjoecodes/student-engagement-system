@@ -4,8 +4,6 @@ from scorer import compute_attention
 from collections import deque
 import requests
 
-
-# ✅ SENSOR FETCH FUNCTION (GLOBAL, NOT INSIDE CLASS)
 def get_sensor_data():
     try:
         res = requests.get("http://127.0.0.1:5000/sensor-data", timeout=1)
