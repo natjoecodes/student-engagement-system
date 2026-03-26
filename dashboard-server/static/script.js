@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let heatmapData = [];
 
   let sensorInterval = null;
+  let lastAlertKey = null;
+
+  let lastSensorStates = [];
 
   // ===== Live window config =====
   const WINDOW_SECONDS = 90;   // 1.5 minute
@@ -404,6 +407,9 @@ function updateSensorCard({
       console.error("Error fetching sensor data:", err);
     }
     updateGlobalAlert(alertStates);
+
+    lastSensorStates = alertStates;
+updateGlobalAlert(alertStates);
   }
 
   function startSensorPolling() {
@@ -662,6 +668,82 @@ function computeTimeBelowThreshold(threshold = 40) {
   return recent.filter(v => v < threshold).length * SAMPLE_INTERVAL;
 }
 
+function generateInsight(states) {
+  const lowTime = computeTimeBelowThreshold();
+  const recent = attentionDataWindow.slice(-5);
+
+  const avgAttention =
+    attentionDataWindow.reduce((a, b) => a + b, 0) /
+    (attentionDataWindow.length || 1);
+
+  const isDropping =
+    recent.length >= 5 &&
+    recent.every((v, i, arr) => i === 0 || v < arr[i - 1]);
+
+  const co2State = states[0];
+  const tempState = states[1];
+  const noiseState = states[3];
+
+  //1. CRITICAL ENVIRONMENT
+  if (states.includes("danger")) {
+    return {
+      key: "env_danger",
+      message: "Poor classroom conditions detected",
+      action: "Improve ventilation / reduce noise immediately"
+    };
+  }
+
+  //2. ATTENTION DROP + CAUSE
+  if (lowTime > 60) {
+    if (co2State === "warning" || co2State === "danger") {
+      return {
+        key: "co2_attention",
+        message: "Low attention likely due to poor air quality",
+        action: "Open windows or improve airflow"
+      };
+    }
+
+    if (noiseState === "warning" || noiseState === "danger") {
+      return {
+        key: "noise_attention",
+        message: "Distraction due to high noise levels",
+        action: "Reduce ambient noise"
+      };
+    }
+
+    return {
+      key: "attention_drop",
+      message: "Sustained low attentiveness detected",
+      action: "Introduce interaction or take a short break"
+    };
+  }
+
+  //3. TREND PREDICTION (THIS IS YOUR “AI-LIKE” PART)
+  if (isDropping) {
+    return {
+      key: "trend_drop",
+      message: "Attention dropping rapidly",
+      action: "Intervene before engagement falls further"
+    };
+  }
+
+  //4. ENV WARNING
+  if (states.includes("warning")) {
+    return {
+      key: "env_warning",
+      message: "Classroom conditions slightly suboptimal",
+      action: "Monitor environment"
+    };
+  }
+
+  //5. STABLE
+  return {
+    key: "stable",
+    message: "Stable engagement levels",
+    action: ""
+  };
+}
+
 function updateInsightState() {
   if (!sessionActive) {
     insightState = INSIGHT_STATE.INACTIVE;
@@ -767,6 +849,7 @@ if (value === null) return; // skip this tick
 attentionDataAll.push(value);
 updateInsightState();
 
+updateGlobalAlert(lastSensorStates);
 // 2️⃣ Live window (chart + alert)
 attentionDataWindow.push(value);
 timeLabels.push(`${min}:${sec}`);
@@ -840,6 +923,7 @@ heatmapData.length = 0;
 
   attentionChart.update();
   renderHeatmap([]);
+  updateGlobalAlert([]);
 
   document.getElementById("avgEng").textContent = "—";
   document.getElementById("peakEng").textContent = "—";
@@ -855,29 +939,40 @@ function updateGlobalAlert(states) {
   const alertBar = document.querySelector(".scoped-alert");
   if (!alertBar) return;
 
-  if (states.includes("danger")) {
-    alertBar.style.opacity = "1";
-    alertBar.querySelector(".alert-emphasis").textContent =
-      "Critical environment";
-    alertBar.querySelector(".alert-text").textContent =
-      "Immediate attention required";
+  const emphasisEl = alertBar.querySelector(".alert-emphasis");
+  const textEl = alertBar.querySelector(".alert-text");
+
+  // 🚫 INACTIVE / PAUSED → clear content but KEEP BOX
+  if (!sessionActive || sessionPaused) {
+    if (lastAlertKey !== "idle") {
+      emphasisEl.textContent = "";
+      textEl.textContent = "";
+      alertBar.style.opacity = "0.3";
+      lastAlertKey = "idle";
+    }
     return;
   }
 
-  if (states.includes("warning")) {
-    alertBar.style.opacity = "1";
-    alertBar.querySelector(".alert-emphasis").textContent =
-      "Suboptimal conditions";
-    alertBar.querySelector(".alert-text").textContent =
-      "Environmental stress detected";
-    return;
-  }
+  const lowTime = computeTimeBelowThreshold();
+  const isLowAttention = lowTime >= 60;
 
-  alertBar.style.opacity = "0.6";
-  alertBar.querySelector(".alert-emphasis").textContent =
-    "Environment stable";
-  alertBar.querySelector(".alert-text").textContent =
-    "All parameters within range";
+  let newKey = "normal";
+  let title = "Environment stable";
+  let message = "Engagement normal";
+  let opacity = "0.5";
+
+const insight = generateInsight(states);
+
+// 🚫 prevent re-render (no blinking)
+if (insight.key === lastAlertKey) return;
+
+emphasisEl.textContent = insight.message;
+textEl.textContent = insight.action;
+
+alertBar.style.opacity =
+  insight.key === "stable" ? "0.5" : "1";
+
+lastAlertKey = insight.key;
 }
 
   /* ==========================================================================
@@ -946,6 +1041,7 @@ function updateGlobalAlert(states) {
     renderHeatmap([]);
     updateInsightState();
     stopSensorPolling();
+    updateGlobalAlert([]);
   }
 
   updateDateTime();
@@ -1227,6 +1323,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     pauseChartPlotting();
     sessionPaused = true;
     stopSensorPolling();
+    updateGlobalAlert([]);
     document.querySelectorAll(".sensor-fill").forEach(fill => {
     fill.style.opacity = "0.5"; // visual freeze
   });
@@ -1240,6 +1337,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     resumeChartPlotting();
     sessionPaused = false;
     startSensorPolling();
+    updateGlobalAlert([]);
     pauseBtn.textContent = "Pause";
     updateSessionStatus("active");
     document.querySelector(".chart-wrapper")?.classList.remove("paused");
