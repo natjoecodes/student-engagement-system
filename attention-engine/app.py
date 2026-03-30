@@ -48,7 +48,11 @@ def attention():
 @app.route("/session/start", methods=["POST"])
 def start_session():
     if session_manager.active_session_id:
-        return jsonify({"error": "Session already active"}), 400
+        return jsonify({
+            "error": "Session already active",
+            **session_manager.get_session_state(),
+            "camera_active": engine.is_capture_active()
+        }), 400
 
     data = request.get_json(silent=True) or {}
     subject = data.get("subject", "Unknown")
@@ -68,12 +72,13 @@ def start_session():
 
 @app.route("/session/pause", methods=["POST"])
 def pause_session():
-    if session_manager.active_session_id is None:
+    sid = session_manager.pause_session()
+    if sid is None:
         return jsonify({"error": "No active session"}), 400
 
     engine.pause_capture()
     return jsonify({
-        "paused_session": session_manager.active_session_id,
+        "paused_session": sid,
         "camera_active": False
     })
 
@@ -91,16 +96,27 @@ def resume_session():
     if not engine.start_capture():
         return jsonify({"error": "Camera could not be reopened"}), 500
 
+    sid = session_manager.resume_session()
     return jsonify({
-        "resumed_session": session_manager.active_session_id,
+        "resumed_session": sid,
         "camera_active": True
     })
 
 @app.route("/session/stop", methods=["POST"])
 def stop_session():
     sid = session_manager.stop_session()
+    if sid is None:
+        engine.stop_capture()
+        return jsonify({"error": "No active session"}), 400
+
     engine.stop_capture()
     return jsonify({"stopped_session": sid, "camera_active": False})
+
+@app.route("/session/state")
+def session_state():
+    state = session_manager.get_session_state()
+    state["camera_active"] = engine.is_capture_active()
+    return jsonify(state)
 
 @app.route("/sessions")
 def list_sessions():

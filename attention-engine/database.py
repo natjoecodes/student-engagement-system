@@ -18,6 +18,7 @@ def init_db():
         end_time TEXT,
         subject TEXT,
         faculty TEXT,
+        status TEXT,
         avg_attention REAL,
         peak_attention REAL
     )
@@ -29,6 +30,23 @@ def init_db():
     except sqlite3.OperationalError:
         # column already exists
         pass
+
+    try:
+        cur.execute("ALTER TABLE sessions ADD COLUMN status TEXT")
+    except sqlite3.OperationalError:
+        # column already exists
+        pass
+
+    cur.execute(
+        """
+        UPDATE sessions
+        SET status = CASE
+            WHEN end_time IS NULL THEN 'active'
+            ELSE 'stopped'
+        END
+        WHERE status IS NULL
+        """
+    )
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS attention_logs (

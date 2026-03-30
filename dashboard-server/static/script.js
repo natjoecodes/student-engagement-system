@@ -824,7 +824,7 @@ else insightCard.classList.add("health-risk");
      4. SESSION CONTROL (START/PAUSE/STOP)
      ========================================================================== */
 
-function startChartPlotting() {
+function startChartPlotting(startedAt = Date.now()) {
   if (chartInterval) return; // HARD LOCK
 
   attentionDataAll.length = 0;
@@ -835,7 +835,7 @@ heatmapData.length = 0;
   attentionChart.update();
   renderHeatmap([]);
 
-  sessionStartTime = Date.now();
+  sessionStartTime = startedAt;
   sessionPaused = false;
 
   chartInterval = setInterval(async () => {
@@ -931,6 +931,75 @@ heatmapData.length = 0;
   document.getElementById("avgEng").textContent = "—";
   document.getElementById("peakEng").textContent = "—";
 
+}
+
+function startSessionTimerDisplay(prefix = "Session Live") {
+  if (!sessionTimerEl) return;
+
+  sessionTimerEl.hidden = false;
+  sessionTimerEl.className =
+    prefix === "Session Live" ? "session-timer active" : "session-timer paused";
+
+  clearInterval(timerInterval);
+
+  const renderTimer = () => {
+    const elapsed = Date.now() - sessionStartTime;
+    sessionTimerEl.textContent = `${prefix} · ${formatElapsed(elapsed)}`;
+  };
+
+  renderTimer();
+
+  if (prefix === "Session Live") {
+    timerInterval = setInterval(() => {
+      if (!sessionActive || sessionPaused) return;
+      renderTimer();
+    }, 1000);
+  } else {
+    timerInterval = null;
+  }
+}
+
+async function syncSessionState() {
+  if (!isDashboard) return;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/session/state");
+    if (!res.ok) throw new Error("State sync failed");
+
+    const state = await res.json();
+    if (!state.session_id) return;
+
+    const startedAt = state.start_time
+      ? new Date(state.start_time).getTime()
+      : Date.now();
+
+    sessionActive = true;
+    sessionPaused = state.status !== "active";
+    sessionStartTime = startedAt;
+
+    if (state.subject && subjectName) subjectName.textContent = state.subject;
+    const facultyEl = document.getElementById("facultyName");
+    if (state.faculty && facultyEl) facultyEl.textContent = state.faculty;
+
+    if (state.status === "active" && state.camera_active) {
+      updateSessionStatus("active");
+      updateInsightState();
+      startChartPlotting(startedAt);
+      startSensorPolling();
+      startSessionTimerDisplay("Session Live");
+    } else {
+      updateSessionStatus("paused");
+      updateInsightState();
+      document.querySelector(".chart-wrapper")?.classList.add("paused");
+      pauseBtn.textContent = "Resume";
+      startSessionTimerDisplay("Session Paused");
+      document.querySelectorAll(".sensor-fill").forEach(fill => {
+        fill.style.opacity = "0.5";
+      });
+    }
+  } catch (err) {
+    console.error("Failed to sync session state", err);
+  }
 }
 
 function updateGlobalAlert(states) {
@@ -1347,6 +1416,8 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   const pauseBtn = document.getElementById("pauseBtn");
   const stopBtn = document.getElementById("stopBtn");
 
+  syncSessionState();
+
   if (startBtn && pauseBtn && stopBtn) {
     startBtn.addEventListener("click", async () => {
   if (sessionActive) return;
@@ -1374,20 +1445,12 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     updateInsightState();
     startChartPlotting();
     startSensorPolling();
-
-    // ===== START SESSION TIMER =====
-    sessionTimerEl.hidden = false;
-    sessionTimerEl.className = "session-timer active";
-    sessionTimerEl.textContent = "Session Live · 00:00";
-
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      if (!sessionActive || sessionPaused) return;
-
-      const elapsed = Date.now() - sessionStartTime;
-      sessionTimerEl.textContent =
-        `Session Live · ${formatElapsed(elapsed)}`;
-    }, 1000);
+    document.querySelector(".chart-wrapper")?.classList.remove("paused");
+    document.querySelectorAll(".sensor-fill").forEach(fill => {
+      fill.style.opacity = "1";
+    });
+    pauseBtn.textContent = "Pause";
+    startSessionTimerDisplay("Session Live");
 
   } catch (e) {
     console.error("Failed to start session", e);
@@ -1419,9 +1482,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
       pauseBtn.textContent = "Resume";
       updateSessionStatus("paused");
       document.querySelector(".chart-wrapper")?.classList.add("paused");
-      sessionTimerEl.className = "session-timer paused";
-      sessionTimerEl.textContent =
-        `⏸ Session Paused · ${formatElapsed(Date.now() - sessionStartTime)}`;
+      startSessionTimerDisplay("Session Paused");
     } else {
       const res = await fetch("http://127.0.0.1:5001/session/resume", {
         method: "POST"
@@ -1439,7 +1500,10 @@ confirmDeleteBtn?.addEventListener("click", async () => {
       pauseBtn.textContent = "Pause";
       updateSessionStatus("active");
       document.querySelector(".chart-wrapper")?.classList.remove("paused");
-      sessionTimerEl.className = "session-timer active";
+      document.querySelectorAll(".sensor-fill").forEach(fill => {
+        fill.style.opacity = "1";
+      });
+      startSessionTimerDisplay("Session Live");
     }
   } catch (e) {
     console.error("Pause/resume error", e);
