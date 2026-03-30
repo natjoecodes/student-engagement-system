@@ -527,7 +527,7 @@ def hero_panel(metrics, styles):
             logo,
             [
                 Paragraph("Government Engineering College Kozhikode", styles["CollegeTitle"]),
-                Paragraph("Student Engagement Analytics System", styles["CollegeSub"]),
+                Paragraph("Student Engagement Analytics System (S8 AE&amp;I)", styles["CollegeSub"]),
             ],
             chip
         ]],
