@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, session
+from flask import Flask, jsonify, render_template, request, redirect, session, Response
 from flask_cors import CORS
 
 # Initialize the Flask application
@@ -72,6 +72,33 @@ def api_sessions():
     except Exception as e:
         print("Session proxy error:", e)
         return jsonify([]), 500
+    
+@app.route("/api/sessions/<session_id>/export")
+def api_export_session(session_id):
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        res = requests.get(
+            f"http://127.0.0.1:5001/session/{session_id}/export",
+            timeout=10
+        )
+
+        if not res.ok:
+            return jsonify({"error": "Export failed"}), res.status_code
+
+        return Response(
+            res.content,
+            mimetype="application/pdf",
+            headers={
+                "Content-Disposition": f'inline; filename="session_{session_id}.pdf"'
+            }
+        )
+
+    except Exception as e:
+        print("Export proxy error:", e)
+        return jsonify({"error": "Export failed"}), 500
+
     
 @app.route("/api/sessions/delete", methods=["POST"])
 def api_delete_sessions():

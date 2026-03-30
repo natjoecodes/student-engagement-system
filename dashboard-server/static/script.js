@@ -1067,12 +1067,11 @@ const sessionList = document.querySelector(".session-list");
 const sessionsContainer = document.getElementById("allSessionsList");
 const selectionToolbar = document.getElementById("selectionToolbar");
 
-if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
+let selectionMode = false;
 
+if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
   const selectionCountEl =
     selectionToolbar.querySelector(".selection-count");
-
-  let selectionMode = false;
 
   selectToggleBtn.addEventListener("click", () => {
     selectionMode = !selectionMode;
@@ -1196,6 +1195,21 @@ closeDeleteModal?.addEventListener("click", closeDeleteModalFn);
 
 deleteModal?.addEventListener("click", (e) => {
   if (e.target === deleteModal) closeDeleteModalFn();
+});
+
+sessionsContainer?.addEventListener("click", (e) => {
+  if (selectionMode) return;
+  if (e.target.closest(".row-share-btn")) return;
+  if (e.target.closest(".row-delete-btn")) return;
+  if (e.target.closest(".row-checkbox")) return;
+
+  const row = e.target.closest(".session-row");
+  if (!row) return;
+
+  const sessionId = row.dataset.sessionId;
+  if (!sessionId) return;
+
+  window.open(`/api/sessions/${sessionId}/export`, "_blank");
 });
 
 sessionsContainer?.addEventListener("click", async (e) => {
