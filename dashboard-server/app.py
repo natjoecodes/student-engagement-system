@@ -81,11 +81,14 @@ def api_export_session(session_id):
     try:
         res = requests.get(
             f"http://127.0.0.1:5001/session/{session_id}/export",
-            timeout=10
+            timeout=60
         )
 
         if not res.ok:
-            return jsonify({"error": "Export failed"}), res.status_code
+            return jsonify({
+                "error": "Export failed",
+                "details": res.text[:500]
+            }), res.status_code
 
         return Response(
             res.content,
