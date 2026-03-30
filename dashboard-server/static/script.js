@@ -211,11 +211,16 @@ row.innerHTML = `
   </div>
 
   <div class="row-action">
-    <input type="checkbox" class="row-checkbox" />
-    <button class="row-delete-btn" title="Delete session">
-      <i class="fas fa-trash"></i>
-    </button>
-  </div>
+  <input type="checkbox" class="row-checkbox" />
+
+  <button class="row-share-btn" title="Export / Share">
+    <i class="fas fa-share-square"></i>
+  </button>
+
+  <button class="row-delete-btn" title="Delete session">
+    <i class="fas fa-trash"></i>
+  </button>
+</div>
 `;
 
 list.appendChild(row);
@@ -1084,6 +1089,10 @@ if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
       cb.checked = false;
       cb.closest(".session-row")?.classList.remove("selected");
     });
+
+    const selectAllBtn = selectionToolbar.querySelector(".select-all-btn");
+    if (selectAllBtn) selectAllBtn.textContent = "Select All";
+
     updateSelectionCount();
   }
 
@@ -1092,6 +1101,26 @@ if (selectToggleBtn && sessionList && sessionsContainer && selectionToolbar) {
       document.querySelectorAll(".row-checkbox:checked").length;
     selectionCountEl.textContent = `${count} selected`;
   }
+
+  // --- Select All / Deselect All Button Logic ---
+  const selectAllBtn = selectionToolbar.querySelector(".select-all-btn");
+
+  selectAllBtn?.addEventListener("click", () => {
+    const checkboxes = document.querySelectorAll(".row-checkbox");
+
+    const allChecked = [...checkboxes].every(cb => cb.checked);
+
+    checkboxes.forEach(cb => {
+      cb.checked = !allChecked;
+      const row = cb.closest(".session-row");
+      row?.classList.toggle("selected", cb.checked);
+    });
+
+    updateSelectionCount();
+
+    // Toggle button text
+    selectAllBtn.textContent = allChecked ? "Select All" : "Deselect All";
+  });
 
   sessionsContainer.addEventListener("click", (e) => {
     if (!selectionMode) return;
@@ -1167,6 +1196,43 @@ closeDeleteModal?.addEventListener("click", closeDeleteModalFn);
 
 deleteModal?.addEventListener("click", (e) => {
   if (e.target === deleteModal) closeDeleteModalFn();
+});
+
+sessionsContainer?.addEventListener("click", async (e) => {
+
+  const shareBtn = e.target.closest(".row-share-btn");
+  if (!shareBtn) return;
+
+  const row = shareBtn.closest(".session-row");
+  if (!row) return;
+
+  const sessionId = row.dataset.sessionId;
+
+  if (!sessionId) {
+    console.error("No session ID found");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/sessions/${sessionId}/export`);
+
+    if (!res.ok) throw new Error("Export failed");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `session_${sessionId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to export session");
+  }
+
 });
 
 sessionsContainer?.addEventListener("click", (e) => {
