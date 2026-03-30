@@ -411,10 +411,8 @@ function updateSensorCard({
     } catch (err) {
       console.error("Error fetching sensor data:", err);
     }
-    updateGlobalAlert(alertStates);
-
     lastSensorStates = alertStates;
-updateGlobalAlert(alertStates);
+    updateGlobalAlert(alertStates);
   }
 
   function startSensorPolling() {
@@ -898,7 +896,7 @@ if (lowTime > 120 && forcedInsight !== "timeBelow") {
     sessionPaused = false;
   }
 
-async function stopChartPlotting() {
+function stopChartPlotting() {
 
   // ===== STOP SESSION TIMER =====
 clearInterval(timerInterval);
@@ -933,11 +931,6 @@ heatmapData.length = 0;
   document.getElementById("avgEng").textContent = "—";
   document.getElementById("peakEng").textContent = "—";
 
-  try {
-    await fetch("http://127.0.0.1:5001/session/stop", { method: "POST" });
-  } catch (e) {
-    console.error("Failed to stop session", e);
-  }
 }
 
 function updateGlobalAlert(states) {
@@ -1361,7 +1354,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   try {
     const facultyName = document.getElementById("facultyName")?.textContent || "—";
 
-    await fetch("http://127.0.0.1:5001/session/start", {
+    const res = await fetch("http://127.0.0.1:5001/session/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1369,6 +1362,11 @@ confirmDeleteBtn?.addEventListener("click", async () => {
         faculty: facultyName
       })
     });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to start session");
+    }
 
     sessionActive = true;
     sessionPaused = false;
@@ -1393,47 +1391,85 @@ confirmDeleteBtn?.addEventListener("click", async () => {
 
   } catch (e) {
     console.error("Failed to start session", e);
+    alert(e.message || "Failed to start session");
   }
 });
 
-    pauseBtn.addEventListener("click", () => {
+    pauseBtn.addEventListener("click", async () => {
   if (!sessionActive) return;
 
-  if (!sessionPaused) {
-    pauseChartPlotting();
-    sessionPaused = true;
-    stopSensorPolling();
-    updateGlobalAlert([]);
-    document.querySelectorAll(".sensor-fill").forEach(fill => {
-    fill.style.opacity = "0.5"; // visual freeze
-  });
-    pauseBtn.textContent = "Resume";
-    updateSessionStatus("paused");
-    document.querySelector(".chart-wrapper")?.classList.add("paused");
-    sessionTimerEl.className = "session-timer paused";
-    sessionTimerEl.textContent =
-      `⏸ Session Paused · ${formatElapsed(Date.now() - sessionStartTime)}`;
-  } else {
-    resumeChartPlotting();
-    sessionPaused = false;
-    startSensorPolling();
-    updateGlobalAlert([]);
-    pauseBtn.textContent = "Pause";
-    updateSessionStatus("active");
-    document.querySelector(".chart-wrapper")?.classList.remove("paused");
-    sessionTimerEl.className = "session-timer active";
+  try {
+    if (!sessionPaused) {
+      const res = await fetch("http://127.0.0.1:5001/session/pause", {
+        method: "POST"
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to pause session");
+      }
+
+      pauseChartPlotting();
+      sessionPaused = true;
+      stopSensorPolling();
+      updateGlobalAlert([]);
+      document.querySelectorAll(".sensor-fill").forEach(fill => {
+        fill.style.opacity = "0.5";
+      });
+      pauseBtn.textContent = "Resume";
+      updateSessionStatus("paused");
+      document.querySelector(".chart-wrapper")?.classList.add("paused");
+      sessionTimerEl.className = "session-timer paused";
+      sessionTimerEl.textContent =
+        `⏸ Session Paused · ${formatElapsed(Date.now() - sessionStartTime)}`;
+    } else {
+      const res = await fetch("http://127.0.0.1:5001/session/resume", {
+        method: "POST"
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to resume session");
+      }
+
+      resumeChartPlotting();
+      sessionPaused = false;
+      startSensorPolling();
+      updateGlobalAlert([]);
+      pauseBtn.textContent = "Pause";
+      updateSessionStatus("active");
+      document.querySelector(".chart-wrapper")?.classList.remove("paused");
+      sessionTimerEl.className = "session-timer active";
+    }
+  } catch (e) {
+    console.error("Pause/resume error", e);
+    alert(e.message || "Failed to update session state");
   }
 });
 
-    stopBtn.addEventListener("click", () => {
+    stopBtn.addEventListener("click", async () => {
       if (!sessionActive) return;
-      stopChartPlotting();
-      stopSensorPolling();
-      document.querySelectorAll(".sensor-fill").forEach(fill => {
-  fill.style.opacity = "1";
-});
-      document.querySelector(".chart-wrapper")?.classList.remove("paused");
-      pauseBtn.textContent = "Pause";
+      try {
+        const res = await fetch("http://127.0.0.1:5001/session/stop", {
+          method: "POST"
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to stop session");
+        }
+
+        stopChartPlotting();
+        stopSensorPolling();
+        document.querySelectorAll(".sensor-fill").forEach(fill => {
+          fill.style.opacity = "1";
+        });
+        document.querySelector(".chart-wrapper")?.classList.remove("paused");
+        pauseBtn.textContent = "Pause";
+      } catch (e) {
+        console.error("Failed to stop session", e);
+        alert(e.message || "Failed to stop session");
+      }
     });
   }
 

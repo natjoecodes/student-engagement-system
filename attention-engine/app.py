@@ -1,3 +1,4 @@
+import atexit
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from io import BytesIO
@@ -16,6 +17,7 @@ CORS(app)
 init_db()
 session_manager = SessionManager()
 engine = AttentionEngine()
+atexit.register(engine.stop_capture)
 
 @app.route("/attention")
 def attention():
@@ -23,9 +25,8 @@ def attention():
         result = engine.get_attention()
         attention_value = result["attention"]
 
-        session_manager.add_attention(attention_value)
-
-        if session_manager.active_session_id:
+        if attention_value is not None and session_manager.active_session_id:
+            session_manager.add_attention(attention_value)
             log_attention(
                 session_manager.active_session_id,
                 attention_value,
@@ -33,25 +34,73 @@ def attention():
                 result["yaw"]
             )
 
-        return jsonify({"attention": attention_value})
+        return jsonify(result)
 
     except Exception as e:
         print("Attention error:", e)
-        return jsonify({"attention": None}), 500
+        return jsonify({
+            "attention": None,
+            "eye_open": 0,
+            "yaw": 0,
+            "camera_active": False
+        }), 500
 
 @app.route("/session/start", methods=["POST"])
 def start_session():
     if session_manager.active_session_id:
         return jsonify({"error": "Session already active"}), 400
-    subject = request.json.get("subject", "Unknown")
-    faculty = request.json.get("faculty", "—")
-    sid = session_manager.start_session(subject, faculty)
-    return jsonify({"session_id": sid})
+
+    data = request.get_json(silent=True) or {}
+    subject = data.get("subject", "Unknown")
+    faculty = data.get("faculty", "—")
+
+    if not engine.start_capture():
+        return jsonify({"error": "Camera could not be opened"}), 500
+
+    try:
+        sid = session_manager.start_session(subject, faculty)
+    except Exception as e:
+        engine.stop_capture()
+        print("Session start error:", e)
+        return jsonify({"error": "Failed to start session"}), 500
+
+    return jsonify({"session_id": sid, "camera_active": True})
+
+@app.route("/session/pause", methods=["POST"])
+def pause_session():
+    if session_manager.active_session_id is None:
+        return jsonify({"error": "No active session"}), 400
+
+    engine.pause_capture()
+    return jsonify({
+        "paused_session": session_manager.active_session_id,
+        "camera_active": False
+    })
+
+@app.route("/session/resume", methods=["POST"])
+def resume_session():
+    if session_manager.active_session_id is None:
+        return jsonify({"error": "No active session"}), 400
+
+    if engine.is_capture_active():
+        return jsonify({
+            "resumed_session": session_manager.active_session_id,
+            "camera_active": True
+        })
+
+    if not engine.start_capture():
+        return jsonify({"error": "Camera could not be reopened"}), 500
+
+    return jsonify({
+        "resumed_session": session_manager.active_session_id,
+        "camera_active": True
+    })
 
 @app.route("/session/stop", methods=["POST"])
 def stop_session():
     sid = session_manager.stop_session()
-    return jsonify({"stopped_session": sid})
+    engine.stop_capture()
+    return jsonify({"stopped_session": sid, "camera_active": False})
 
 @app.route("/sessions")
 def list_sessions():

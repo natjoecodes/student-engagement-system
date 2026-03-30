@@ -27,14 +27,40 @@ class AttentionEngine:
         self.attention_state = 100
         self.sensor_history = deque(maxlen=5)
 
+    def is_capture_active(self):
+        return self.camera.is_open()
+
+    def start_capture(self):
+        return self.camera.open()
+
+    def pause_capture(self):
+        self.camera.release()
+
+    def stop_capture(self, reset_state=True):
+        self.camera.release()
+        if reset_state:
+            self.buffer.clear()
+            self.prev_score = None
+            self.attention_state = 100
+            self.sensor_history.clear()
+
     def get_attention(self):
+        if not self.is_capture_active():
+            return {
+                "attention": None,
+                "eye_open": 0,
+                "yaw": 0,
+                "camera_active": False
+            }
+
         frame = self.camera.get_frame()
 
         if frame is None:
             return {
-                "attention": 0,
+                "attention": None,
                 "eye_open": 0,
-                "yaw": 0
+                "yaw": 0,
+                "camera_active": self.is_capture_active()
             }
 
         features = self.analyzer.analyze(frame)
@@ -54,7 +80,8 @@ class AttentionEngine:
             return {
                 "attention": int(sum(self.buffer) / len(self.buffer)),
                 "eye_open": 0,
-                "yaw": 0
+                "yaw": 0,
+                "camera_active": True
             }
 
         #FETCH SENSOR DATA HERE
@@ -84,5 +111,6 @@ class AttentionEngine:
         return {
             "attention": score,
             "eye_open": features.get("eye_open", 0),
-            "yaw": features.get("yaw", 0)
+            "yaw": features.get("yaw", 0),
+            "camera_active": True
         }
