@@ -214,7 +214,7 @@ row.innerHTML = `
   <input type="checkbox" class="row-checkbox" />
 
   <button class="row-share-btn" title="Export / Share">
-    <i class="fas fa-share-square"></i>
+    <i class="fa-solid fa-download"></i>
   </button>
 
   <button class="row-delete-btn" title="Delete session">
