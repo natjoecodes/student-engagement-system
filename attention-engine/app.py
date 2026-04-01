@@ -47,10 +47,9 @@ def attention():
 def start_session():
     if session_manager.active_session_id:
         return jsonify({
-            "error": "Session already active",
             **session_manager.get_session_state(),
             "camera_active": engine.is_capture_active()
-        }), 400
+        }), 200
 
     data = request.get_json(silent=True) or {}
     subject = data.get("subject", "Unknown")
@@ -86,8 +85,9 @@ def resume_session():
         return jsonify({"error": "No active session"}), 400
 
     if engine.is_capture_active():
+        sid = session_manager.resume_session()
         return jsonify({
-            "resumed_session": session_manager.active_session_id,
+            "resumed_session": sid,
             "camera_active": True
         })
 
@@ -105,7 +105,7 @@ def stop_session():
     sid = session_manager.stop_session()
     if sid is None:
         engine.stop_capture()
-        return jsonify({"error": "No active session"}), 400
+        return jsonify({"stopped_session": None, "camera_active": False}), 200
 
     engine.stop_capture()
     return jsonify({"stopped_session": sid, "camera_active": False})

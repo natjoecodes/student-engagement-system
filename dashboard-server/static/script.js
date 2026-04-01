@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let sessionActive = false;
   let sessionPaused = false;
+  let sessionRequestInFlight = false;
   let chartInterval = null;
   let sessionStartTime = null;
   let pausedAt = null;
@@ -1419,10 +1420,18 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   syncSessionState();
 
   if (startBtn && pauseBtn && stopBtn) {
+    function setSessionControlsBusy(isBusy) {
+      sessionRequestInFlight = isBusy;
+      startBtn.disabled = isBusy;
+      pauseBtn.disabled = isBusy;
+      stopBtn.disabled = isBusy;
+    }
+
     startBtn.addEventListener("click", async () => {
-  if (sessionActive) return;
+  if (sessionActive || sessionRequestInFlight) return;
 
   try {
+    setSessionControlsBusy(true);
     const facultyName = document.getElementById("facultyName")?.textContent || "—";
 
     const res = await fetch("http://127.0.0.1:5001/session/start", {
@@ -1455,13 +1464,16 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   } catch (e) {
     console.error("Failed to start session", e);
     alert(e.message || "Failed to start session");
+  } finally {
+    setSessionControlsBusy(false);
   }
 });
 
     pauseBtn.addEventListener("click", async () => {
-  if (!sessionActive) return;
+  if (!sessionActive || sessionRequestInFlight) return;
 
   try {
+    setSessionControlsBusy(true);
     if (!sessionPaused) {
       const res = await fetch("http://127.0.0.1:5001/session/pause", {
         method: "POST"
@@ -1508,12 +1520,15 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   } catch (e) {
     console.error("Pause/resume error", e);
     alert(e.message || "Failed to update session state");
+  } finally {
+    setSessionControlsBusy(false);
   }
 });
 
     stopBtn.addEventListener("click", async () => {
-      if (!sessionActive) return;
+      if (!sessionActive || sessionRequestInFlight) return;
       try {
+        setSessionControlsBusy(true);
         const res = await fetch("http://127.0.0.1:5001/session/stop", {
           method: "POST"
         });
@@ -1533,6 +1548,8 @@ confirmDeleteBtn?.addEventListener("click", async () => {
       } catch (e) {
         console.error("Failed to stop session", e);
         alert(e.message || "Failed to stop session");
+      } finally {
+        setSessionControlsBusy(false);
       }
     });
   }

@@ -1,9 +1,11 @@
 import uuid
 from datetime import datetime
+from threading import Lock
 from database import get_connection
 
 class SessionManager:
     def __init__(self):
+        self._lock = Lock()
         self.active_session_id = None
         self.active_session_status = None
         self.recover_active_session()
@@ -86,65 +88,68 @@ class SessionManager:
         return latest_id
 
     def start_session(self, subject, faculty):
-        if self.active_session_id is not None:
-            raise RuntimeError("Session already running")
+        with self._lock:
+            if self.active_session_id is not None:
+                raise RuntimeError("Session already running")
 
-        self.active_session_id = str(uuid.uuid4())
-        self.active_session_status = "active"
+            self.active_session_id = str(uuid.uuid4())
+            self.active_session_status = "active"
 
-        conn = get_connection()
-        conn.execute(
-            """
-            INSERT INTO sessions (id, start_time, subject, faculty, status)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                self.active_session_id,
-                datetime.now().isoformat(),
-                subject,
-                faculty,
-                self.active_session_status
+            conn = get_connection()
+            conn.execute(
+                """
+                INSERT INTO sessions (id, start_time, subject, faculty, status)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    self.active_session_id,
+                    datetime.now().isoformat(),
+                    subject,
+                    faculty,
+                    self.active_session_status
+                )
             )
-        )
-        conn.commit()
-        conn.close()
+            conn.commit()
+            conn.close()
 
-        return self.active_session_id
+            return self.active_session_id
 
     def add_attention(self, value):
         return None
 
     def pause_session(self):
-        if self.active_session_id is None:
-            return None
+        with self._lock:
+            if self.active_session_id is None:
+                return None
 
-        self.active_session_status = "paused"
+            self.active_session_status = "paused"
 
-        conn = get_connection()
-        conn.execute(
-            "UPDATE sessions SET status='paused' WHERE id=?",
-            (self.active_session_id,)
-        )
-        conn.commit()
-        conn.close()
+            conn = get_connection()
+            conn.execute(
+                "UPDATE sessions SET status='paused' WHERE id=?",
+                (self.active_session_id,)
+            )
+            conn.commit()
+            conn.close()
 
-        return self.active_session_id
+            return self.active_session_id
 
     def resume_session(self):
-        if self.active_session_id is None:
-            return None
+        with self._lock:
+            if self.active_session_id is None:
+                return None
 
-        self.active_session_status = "active"
+            self.active_session_status = "active"
 
-        conn = get_connection()
-        conn.execute(
-            "UPDATE sessions SET status='active' WHERE id=?",
-            (self.active_session_id,)
-        )
-        conn.commit()
-        conn.close()
+            conn = get_connection()
+            conn.execute(
+                "UPDATE sessions SET status='active' WHERE id=?",
+                (self.active_session_id,)
+            )
+            conn.commit()
+            conn.close()
 
-        return self.active_session_id
+            return self.active_session_id
 
     def get_session_state(self):
         if self.active_session_id is None:
@@ -176,12 +181,13 @@ class SessionManager:
         }
 
     def stop_session(self):
-        if self.active_session_id is None:
-            return None
+        with self._lock:
+            if self.active_session_id is None:
+                return None
 
-        sid = self.active_session_id
-        self._finalize_session(sid)
-        self.active_session_id = None
-        self.active_session_status = None
+            sid = self.active_session_id
+            self._finalize_session(sid)
+            self.active_session_id = None
+            self.active_session_status = None
 
-        return sid
+            return sid
