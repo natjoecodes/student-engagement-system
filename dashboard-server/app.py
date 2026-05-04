@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request, redirect, session, Response
 from flask_cors import CORS
+import requests
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -51,15 +52,17 @@ def dashboard():
         return redirect('/')
     return render_template('dashboard.html')
 
-# Route for sessions page
-
 @app.route("/sessions")
 def sessions():
     if 'user' not in session:
         return redirect('/')
     return render_template("sessions.html")
 
-import requests
+ENGINE_BASE_URL = "http://127.0.0.1:5001"
+
+def proxy_engine_request(method, path, *, json_body=None, timeout=3):
+    url = f"{ENGINE_BASE_URL}{path}"
+    return requests.request(method, url, json=json_body, timeout=timeout)
 
 @app.route("/api/sessions")
 def api_sessions():
@@ -67,11 +70,84 @@ def api_sessions():
         return jsonify([]), 401
 
     try:
-        res = requests.get("http://127.0.0.1:5001/sessions", timeout=3)
+        res = proxy_engine_request("GET", "/sessions", timeout=3)
         return jsonify(res.json()), res.status_code
     except Exception as e:
         print("Session proxy error:", e)
         return jsonify([]), 500
+
+@app.route("/api/attention")
+def api_attention():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        res = proxy_engine_request("GET", "/attention", timeout=5)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Attention proxy error:", e)
+        return jsonify({"error": "Attention fetch failed"}), 500
+
+@app.route("/api/session/state")
+def api_session_state():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        res = proxy_engine_request("GET", "/session/state", timeout=3)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Session state proxy error:", e)
+        return jsonify({"error": "State fetch failed"}), 500
+
+@app.route("/api/session/start", methods=["POST"])
+def api_session_start():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        res = proxy_engine_request("POST", "/session/start", json_body=payload, timeout=5)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Session start proxy error:", e)
+        return jsonify({"error": "Failed to start session"}), 500
+
+@app.route("/api/session/pause", methods=["POST"])
+def api_session_pause():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        res = proxy_engine_request("POST", "/session/pause", timeout=5)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Session pause proxy error:", e)
+        return jsonify({"error": "Failed to pause session"}), 500
+
+@app.route("/api/session/resume", methods=["POST"])
+def api_session_resume():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        res = proxy_engine_request("POST", "/session/resume", timeout=5)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Session resume proxy error:", e)
+        return jsonify({"error": "Failed to resume session"}), 500
+
+@app.route("/api/session/stop", methods=["POST"])
+def api_session_stop():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        res = proxy_engine_request("POST", "/session/stop", timeout=5)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print("Session stop proxy error:", e)
+        return jsonify({"error": "Failed to stop session"}), 500
     
 @app.route("/api/sessions/<session_id>/export")
 def api_export_session(session_id):
@@ -79,10 +155,7 @@ def api_export_session(session_id):
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
-        res = requests.get(
-            f"http://127.0.0.1:5001/session/{session_id}/export",
-            timeout=60
-        )
+        res = proxy_engine_request("GET", f"/session/{session_id}/export", timeout=60)
 
         if not res.ok:
             return jsonify({
@@ -116,10 +189,7 @@ def api_delete_sessions():
 
     try:
         for sid in ids:
-            res = requests.delete(
-                f"http://127.0.0.1:5001/session/{sid}",
-                timeout=3
-            )
+            res = proxy_engine_request("DELETE", f"/session/{sid}", timeout=3)
             if not res.ok:
                 return jsonify({"error": "Delete failed"}), res.status_code
 
@@ -160,4 +230,4 @@ def get_sensor_data():
 # Run the app
 if __name__ == '__main__':
     # Running on 0.0.0.0 makes the server accessible from other devices on your network
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)

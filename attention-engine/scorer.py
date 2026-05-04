@@ -21,15 +21,23 @@ def compute_camera_score(features):
     eye = features.get("eye_open", 1.0)
     yaw = abs(features.get("yaw", 0.0))
 
-    # --- Eyes (continuous penalty only) ---
+    # --- Eyes (moderate, non-linear penalty) ---
     if eye < EYE_CLOSED_THRESH:
         eye_ratio = 1 - (eye / EYE_CLOSED_THRESH)
         score -= eye_ratio * PENALTY_EYES_CLOSED
+        if eye < (0.75 * EYE_CLOSED_THRESH):
+            score -= 8
+        if eye < (0.5 * EYE_CLOSED_THRESH):
+            score -= 8
 
-    # --- Yaw (continuous penalty only) ---
-    yaw_ratio = max(0.0, (yaw - YAW_AWAY_THRESH) / (0.2))
+    # --- Yaw (moderate penalty after threshold) ---
+    yaw_ratio = max(0.0, (yaw - YAW_AWAY_THRESH) / 0.16)
     yaw_ratio = min(yaw_ratio, 1.0)
     score -= yaw_ratio * PENALTY_LOOKING_AWAY
+    if yaw > (1.8 * YAW_AWAY_THRESH):
+        score -= 5
+    if yaw > (2.5 * YAW_AWAY_THRESH):
+        score -= 5
 
     # clamp
     score = max(0, min(100, score))
@@ -82,7 +90,7 @@ def compute_sensor_score(sensor_data):
     if humidity > 70:
         score -= 0.05
 
-    return max(0.7, clamp(score))
+    return max(0.65, clamp(score))
 
 
 def compute_attention(features, sensor_data=None, prev_score=None):

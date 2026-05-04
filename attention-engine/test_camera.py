@@ -3,6 +3,10 @@ import cv2
 
 cam = Camera()
 
+if not cam.open():
+    print("Could not open camera")
+    raise SystemExit(1)
+
 while True:
     frame = cam.get_frame()
     if frame is None:

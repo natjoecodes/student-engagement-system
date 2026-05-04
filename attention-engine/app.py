@@ -40,6 +40,8 @@ def attention():
             "attention": None,
             "eye_open": 0,
             "yaw": 0,
+            "num_faces": 0,
+            "faces": [],
             "camera_active": False
         }), 500
 

@@ -554,7 +554,7 @@ shadowBlur: 12,
 
 async function computeAttentiveness() {
   try {
-    const res = await fetch("http://127.0.0.1:5001/attention");
+    const res = await fetch("/api/attention");
     if (!res.ok) throw new Error("Attention API failed");
     const data = await res.json();
     return typeof data.attention === "number" ? data.attention : null;
@@ -964,7 +964,7 @@ async function syncSessionState() {
   if (!isDashboard) return;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/session/state");
+    const res = await fetch("/api/session/state");
     if (!res.ok) throw new Error("State sync failed");
 
     const state = await res.json();
@@ -1434,7 +1434,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
     setSessionControlsBusy(true);
     const facultyName = document.getElementById("facultyName")?.textContent || "—";
 
-    const res = await fetch("http://127.0.0.1:5001/session/start", {
+    const res = await fetch("/api/session/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1475,7 +1475,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
   try {
     setSessionControlsBusy(true);
     if (!sessionPaused) {
-      const res = await fetch("http://127.0.0.1:5001/session/pause", {
+      const res = await fetch("/api/session/pause", {
         method: "POST"
       });
 
@@ -1496,7 +1496,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
       document.querySelector(".chart-wrapper")?.classList.add("paused");
       startSessionTimerDisplay("Session Paused");
     } else {
-      const res = await fetch("http://127.0.0.1:5001/session/resume", {
+      const res = await fetch("/api/session/resume", {
         method: "POST"
       });
 
@@ -1529,7 +1529,7 @@ confirmDeleteBtn?.addEventListener("click", async () => {
       if (!sessionActive || sessionRequestInFlight) return;
       try {
         setSessionControlsBusy(true);
-        const res = await fetch("http://127.0.0.1:5001/session/stop", {
+        const res = await fetch("/api/session/stop", {
           method: "POST"
         });
 
